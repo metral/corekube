@@ -63,33 +63,34 @@ resources:
                 [Service]
                 ExecStart=/usr/bin/docker run -d --name etcd -p 4001:4001 -p 7001:7001 coreos/etcd
 
-  #machines:
-  #  type: "OS::Heat::ResourceGroup"
-  #  properties:
-  #    count: { get_param: count }
-  #    resource_def:
-  #      type: OS::Nova::Server
-  #      properties:
-  #        key_name: { get_param: key-name }
-  #        image: { get_param: coreos-image }
-  #        flavor: { get_param: flavor }
-  #        name: { get_param: name }
-  #        user_data_format: RAW
-  #        config_drive: "true"
-  #        user_data:
-  #          str_replace: |
-  #            #cloud-config
+  machines:
+    type: "OS::Heat::ResourceGroup"
+    properties:
+      count: { get_param: count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          key_name: { get_param: key-name }
+          image: { get_param: coreos-image }
+          flavor: { get_param: flavor }
+          name: { get_param: name }
+          user_data_format: RAW
+          config_drive: "true"
+          user_data:
+            str_replace:
+              template: |
+                #cloud-config
 
-  #            coreos:
-  #              etcd:
-  #                discovery: http://%discovery%:4001/v2/keys/testcluster
-  #                addr: $private_ipv4:4001
-  #                peer-addr: $private_ipv4:7001
-  #                  
-  #              units:
-  #                - name: etcd.service
-  #                command: start
-  #                - name: fleet.service
-  #                command: start
-  #            params:
-  #              "%discovery%": { get_attr: [etcd, privateIPv4] }
+                coreos:
+                  etcd:
+                    discovery: http://%discovery%:4001/v2/keys/testcluster
+                    addr: $private_ipv4:4001
+                    peer-addr: $private_ipv4:7001
+                      
+                  units:
+                  - name: etcd.service
+                    command: start
+                  - name: fleet.service
+                    command: start
+              params:
+                "%discovery%": { get_attr: [etcd, networks, private, 0] }
