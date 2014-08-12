@@ -39,6 +39,8 @@ parameters:
 
 resources:
 
+  coreos-cluster-uuid:
+    type: OS::Heat::RandomString
   etcd:
     type: OS::Nova::Server
     properties:
@@ -83,7 +85,7 @@ resources:
 
                 coreos:
                   etcd:
-                    discovery: http://%discovery%:4001/v2/keys/testcluster
+                    discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
                     addr: $private_ipv4:4001
                     peer-addr: $private_ipv4:7001
                       
@@ -94,3 +96,4 @@ resources:
                     command: start
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
+                "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
