@@ -1,0 +1,95 @@
+heat_template_version: 2013-05-23
+
+description: Deploy a CoreOS cluster that tracks the Stable Channel
+
+parameters:
+  count:
+    description: Number of CoreOS machines to deploy
+    type: number
+    default: 3
+    constraints:
+    - range:
+        min: 3
+        max: 12
+      description: Must be between 3 and 12 servers.
+  key-name:
+    type: string
+    description: Name of key-pair to be used for compute instance
+  flavor:
+    type: string
+    default: 4 GB Performance
+    constraints:
+    - allowed_values:
+      - 2 GB Performance
+      - 4 GB Performance
+      - 8 GB Performance
+      - 15 GB Performance
+      - 30 GB Performance
+      description: |
+        Must be a valid Rackspace Cloud Server flavor for the region you have
+        selected to deploy into.
+  name:
+    type: string
+    description: Name of each CoreOS machine booted
+    default: CoreOS-stable
+  coreos-image:
+    type: string
+    description: CoreOS UUID
+    default: "4ca73331-5063-429f-8a27-70de5099e747"
+
+resources:
+
+  etcd:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: key-name }
+      image: { get_param: coreos-image }
+      flavor: { get_param: flavor }
+      name: "etcd"
+      user_data_format: RAW
+      config_drive: "true"
+      user_data: |
+        #cloud-config
+
+        coreos:
+          units:
+            - name: private-etcd.service
+              command: start
+              content: |
+                [Unit]
+                After=network-online.target
+                Requires=network-online.target
+
+                [Service]
+                ExecStart=/usr/bin/docker run -d --name etcd -p 4001:4001 -p 7001:7001 coreos/etcd
+
+  #machines:
+  #  type: "OS::Heat::ResourceGroup"
+  #  properties:
+  #    count: { get_param: count }
+  #    resource_def:
+  #      type: OS::Nova::Server
+  #      properties:
+  #        key_name: { get_param: key-name }
+  #        image: { get_param: coreos-image }
+  #        flavor: { get_param: flavor }
+  #        name: { get_param: name }
+  #        user_data_format: RAW
+  #        config_drive: "true"
+  #        user_data:
+  #          str_replace: |
+  #            #cloud-config
+
+  #            coreos:
+  #              etcd:
+  #                discovery: http://%discovery%:4001/v2/keys/testcluster
+  #                addr: $private_ipv4:4001
+  #                peer-addr: $private_ipv4:7001
+  #                  
+  #              units:
+  #                - name: etcd.service
+  #                command: start
+  #                - name: fleet.service
+  #                command: start
+  #            params:
+  #              "%discovery%": { get_attr: [etcd, privateIPv4] }
