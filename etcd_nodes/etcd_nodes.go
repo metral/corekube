@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -37,7 +38,12 @@ func main() {
 
 	// Connect to the etcd discovery to pull the nodes
 	client := etcd.NewClient([]string{discoveryHost})
-	resp, _ := client.Get(discoveryPath, true, false)
+	resp, err := client.Get(discoveryPath, true, false)
+
+	if err != nil {
+		log.Printf("%s", err)
+		os.Exit(2)
+	}
 
 	for _, n := range resp.Node.Nodes {
 		log.Printf("%s: %s\n", n.Key, n.Value)
