@@ -28,7 +28,7 @@ func ParseDiscovery() (discoveryHost, discoveryPath string) {
 
 	path := strings.Split(u.Path, "/keys/")[1]
 	path = strings.Replace(path, "\n", "", -1)
-	discoveryPath = fmt.Sprintf("%s", path)
+	discoveryPath = path
 
 	return discoveryHost, discoveryPath
 }
