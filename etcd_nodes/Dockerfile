@@ -1,4 +1,4 @@
-FROM google/golang
+FROM google/golang:stable
 
 WORKDIR /gopath/src/app
 ADD . /gopath/src/app/
