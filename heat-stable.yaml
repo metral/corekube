@@ -90,10 +90,20 @@ resources:
                     peer-addr: $private_ipv4:7001
                       
                   units:
-                  - name: etcd.service
-                    command: start
-                  - name: fleet.service
-                    command: start
+                    - name: etcd.service
+                      command: start
+                    - name: fleet.service
+                      command: start
+                    - name: etcd-nodes.service
+                      command: start
+                      content: |
+                        [Unit]
+                        After=network-online.target
+                        Requires=network-online.target
+
+                        [Service]
+                        ExecStartPre=/usr/bin/docker pull metral/corekube
+                        ExecStart=/usr/bin/docker run -v /run/systemd/system/etcd.service.d/:/mnt metral/corekube
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
