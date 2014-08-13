@@ -1,27 +1,23 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/url"
-	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/coreos/go-etcd/etcd"
 )
 
-func Usage() {
-	fmt.Printf("Usage: %s\n", os.Args[0])
-	flag.PrintDefaults()
-	os.Exit(2)
-}
+func ParseDiscovery() (discoveryHost, discoveryPath *string) {
+	file := "/run/systemd/system/etcd.service.d/20-cloudinit.conf"
+	cmd := fmt.Sprintf("cat %s | grep ETCD_DISCOVERY | cut -d '=' -f 3 | cut -d '\"' -f 1", file)
+	out, err := exec.Command("sh", "-c", cmd).Output()
 
-func SetupFlags() (discoveryHost, discoveryPath *string) {
-	discoveryURL := flag.String("discovery_url", "", "Discovery URL")
-	flag.Parse()
+	discoveryURL := string(out)
 
-	u, err := url.Parse(*discoveryURL)
+	u, err := url.Parse(discoveryURL)
 	if err != nil {
 		panic(err)
 	}
@@ -33,16 +29,12 @@ func SetupFlags() (discoveryHost, discoveryPath *string) {
 	discoveryPath = new(string)
 	*discoveryPath = path
 
-	if *discoveryHost == "" || *discoveryPath == "" {
-		Usage()
-	}
-
 	return discoveryHost, discoveryPath
 }
 
 func main() {
 	// Connect to the etcd discovery to pull the nodes
-	discoveryHost, discoveryPath := SetupFlags()
+	discoveryHost, discoveryPath := ParseDiscovery()
 
 	client := etcd.NewClient([]string{*discoveryHost})
 	resp, _ := client.Get(*discoveryPath, true, false)
