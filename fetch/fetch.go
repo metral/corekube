@@ -33,13 +33,12 @@ func ParseDiscovery() (discoveryHost, discoveryPath *string) {
 }
 
 func main() {
-	// Connect to the etcd discovery to pull the nodes
 	discoveryHost, discoveryPath := ParseDiscovery()
 
+	// Connect to the etcd discovery to pull the nodes
 	client := etcd.NewClient([]string{*discoveryHost})
 	resp, _ := client.Get(*discoveryPath, true, false)
 
-	// Store the pointer to the etcd nodes as a NodeGroup
 	for _, n := range resp.Node.Nodes {
 		log.Printf("%s: %s\n", n.Key, n.Value)
 	}
