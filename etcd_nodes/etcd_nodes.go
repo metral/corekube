@@ -11,6 +11,7 @@ import (
 )
 
 func ParseDiscovery() (discoveryHost, discoveryPath *string) {
+	// Pull the ETCD_DISCOVERY env var and parse it for the etcd client usage
 	file := "/run/systemd/system/etcd.service.d/20-cloudinit.conf"
 	cmd := fmt.Sprintf("cat %s | grep ETCD_DISCOVERY | cut -d '=' -f 3 | cut -d '\"' -f 1", file)
 	out, err := exec.Command("sh", "-c", cmd).Output()
