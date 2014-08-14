@@ -2,40 +2,57 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
+	"os/exec"
 
 	"github.com/coreos/go-etcd/etcd"
 )
 
-type ETCDMachine map[string]interface{}
+type KeyValue map[string]interface{}
 
-type ETCDMachines []ETCDMachine
+type KeyValueGroup []KeyValue // a slice of KeyValue's
 
 func checkForErrors(err error) {
 	if err != nil {
 		panic(err)
+		os.Exit(2)
 	}
 }
 
+func getDockerHostIP() (ip string) {
+	cmd := fmt.Sprintf("netstat -nr | grep '^0\\.0\\.0\\.0' | awk '{print $2}'")
+	out, err := exec.Command("sh", "-c", cmd).Output()
+	checkForErrors(err)
+
+	return string(out)
+}
+
+func getDiscoveryHost(host string, port string) (discoveryHost string) {
+	return fmt.Sprintf("http://%s:%s", host, port)
+}
+
 func main() {
-	discoveryHost := "http://127.0.0.1:7001"
+	// Local etcd API host & port
+	port := "7001"
+	discoveryHost := getDiscoveryHost(getDockerHostIP(), port)
+
+	// Request path listing etcd machines in cluster
 	discoveryPath := "admin/machines"
 
-	// Connect to the etcd discovery to pull the nodes
+	// Connect & send request to local etcd API to retrieve machines JSON
 	client := etcd.NewClient([]string{discoveryHost})
 	req := etcd.NewRawRequest("GET", discoveryPath, nil, nil)
 	rawRespPtr, err := client.SendRequest(req)
 	checkForErrors(err)
-
 	jsonResponse := rawRespPtr.Body
 
-	var etcdMachines ETCDMachines
-	err = json.Unmarshal(jsonResponse, &etcdMachines)
-
+	var machines KeyValueGroup
+	err = json.Unmarshal(jsonResponse, &machines)
 	checkForErrors(err)
 
-	for _, etcdMachine := range etcdMachines {
-		log.Printf("%s -- %s -- %s -- %s\n", etcdMachine["name"], etcdMachine["state"], etcdMachine["clientURL"], etcdMachine["peerURL"])
+	for _, machine := range machines {
+		log.Printf("%s -- %s -- %s -- %s\n", machine["name"], machine["state"], machine["clientURL"], machine["peerURL"])
 	}
-
 }
