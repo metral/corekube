@@ -1,51 +1,41 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
-	"net/url"
-	"os"
-	"os/exec"
-	"strings"
 
 	"github.com/coreos/go-etcd/etcd"
 )
 
-func ParseDiscovery() (discoveryHost, discoveryPath string) {
-	// Pull the ETCD_DISCOVERY env var and parse it for the etcd client usage
-	file := "/mnt/20-cloudinit.conf"
-	cmd := fmt.Sprintf("cat %s | grep ETCD_DISCOVERY | cut -d '=' -f 3 | cut -d '\"' -f 1", file)
-	out, err := exec.Command("sh", "-c", cmd).Output()
+type ETCDMachine map[string]interface{}
 
-	discoveryURL := string(out)
+type ETCDMachines []ETCDMachine
 
-	u, err := url.Parse(discoveryURL)
+func checkForErrors(err error) {
 	if err != nil {
 		panic(err)
 	}
-
-	discoveryHost = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
-
-	path := strings.Split(u.Path, "/keys/")[1]
-	path = strings.Replace(path, "\n", "", -1)
-	discoveryPath = path
-
-	return discoveryHost, discoveryPath
 }
 
 func main() {
-	discoveryHost, discoveryPath := ParseDiscovery()
+	discoveryHost := "http://127.0.0.1:7001"
+	discoveryPath := "admin/machines"
 
 	// Connect to the etcd discovery to pull the nodes
 	client := etcd.NewClient([]string{discoveryHost})
-	resp, err := client.Get(discoveryPath, true, false)
+	req := etcd.NewRawRequest("GET", discoveryPath, nil, nil)
+	rawRespPtr, err := client.SendRequest(req)
+	checkForErrors(err)
 
-	if err != nil {
-		log.Printf("%s", err)
-		os.Exit(2)
+	jsonResponse := rawRespPtr.Body
+
+	var etcdMachines ETCDMachines
+	err = json.Unmarshal(jsonResponse, &etcdMachines)
+
+	checkForErrors(err)
+
+	for _, etcdMachine := range etcdMachines {
+		log.Printf("%s -- %s -- %s -- %s\n", etcdMachine["name"], etcdMachine["state"], etcdMachine["clientURL"], etcdMachine["peerURL"])
 	}
 
-	for _, n := range resp.Node.Nodes {
-		log.Printf("%s: %s\n", n.Key, n.Value)
-	}
 }
