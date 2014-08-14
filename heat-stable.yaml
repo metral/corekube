@@ -102,8 +102,8 @@ resources:
                         Requires=network-online.target
 
                         [Service]
-                        ExecStartPre=/usr/bin/docker pull metral/corekube
-                        ExecStart=/usr/bin/docker run -v /run/systemd/system/etcd.service.d/:/mnt metral/corekube
+                        ExecStartPre=/usr/bin/docker pull metral/etcd_nodes
+                        ExecStart=/usr/bin/docker run -v /run/systemd/system/etcd.service.d/:/mnt metral/etcd_nodes
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
