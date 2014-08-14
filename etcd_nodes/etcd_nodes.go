@@ -62,22 +62,22 @@ func checkForErrors(err error) {
 }
 
 // Get the IP address of the docker host as this is run from within container
-func getDockerHostIP() (ip string) {
+func getDockerHostIP() string {
 	cmd := fmt.Sprintf("netstat -nr | grep '^0\\.0\\.0\\.0' | awk '{print $2}'")
 	out, err := exec.Command("sh", "-c", cmd).Output()
 	checkForErrors(err)
 
-	ip = string(out)
+	ip := string(out)
 	ip = strings.Replace(ip, "\n", "", -1)
 	return ip
 }
 
 // Compose the etcd API host:port location
-func getEtcdAPI(host string, port string) (etcdAPI string) {
+func getEtcdAPI(host string, port string) string {
 	return fmt.Sprintf("http://%s:%s", host, port)
 }
 
-func httpGetRequest(url string) (content []byte) {
+func httpGetRequest(url string) []byte {
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatal("%s", err)
