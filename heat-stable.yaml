@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Deploy a CoreOS cluster that tracks the Stable Channel
+description: Deploy a CoreOS cluster that operates a Kubernetes cluster
 
 parameters:
   count:
@@ -71,7 +71,7 @@ resources:
           key_name: { get_param: key-name }
           image: { get_param: coreos-image }
           flavor: { get_param: flavor }
-          name: CoreOS_Stable_%index%
+          name: coreos-%index%
           user_data_format: RAW
           config_drive: "true"
           user_data:
@@ -81,6 +81,7 @@ resources:
 
                 coreos:
                   etcd:
+                    name: coreos-%index%
                     discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
                     addr: $private_ipv4:4001
                     peer-addr: $private_ipv4:7001
