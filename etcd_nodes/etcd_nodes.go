@@ -14,18 +14,6 @@ type KeyValue map[string]interface{}
 
 type KeyValueGroup []KeyValue // a slice of KeyValue's
 
-/* i.e. KeyValueGroup composed of KeyValue's
-[
-	{
-		"name":"abc",
-		"state":"follower",
-		"clientURL":"http://1.2.3.4:4001",
-		"peerURL":"http://1.2.3.4:7001"
-	},
-	...
-]
-*/
-
 type EtcdMachine struct {
 	name      string
 	state     string
