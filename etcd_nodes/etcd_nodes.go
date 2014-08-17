@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -81,8 +82,24 @@ func httpGetRequest(url string) []byte {
 	return body
 }
 
+func waitForMachines(machineCount int) {
+	log.Printf("%d", machineCount)
+}
+
+func setupFlags() int {
+	machineCount :=
+		flag.Int("machine_count", 0, "Number of machines to watch for")
+	flag.Parse()
+
+	return *machineCount
+}
+
 // Access the CoreOS / docker etcd API to extract machine information
 func main() {
+	if machineCount := setupFlags(); machineCount > 0 {
+		waitForMachines(machineCount)
+	}
+
 	// Local etcd API host & port
 	port := "7001"
 	etcdAPI := getEtcdAPI(getDockerHostIP(), port)
