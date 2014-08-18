@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 type KeyValue map[string]interface{}
@@ -83,37 +84,16 @@ func httpGetRequest(url string) []byte {
 	return body
 }
 
-func waitForMachines(machineCount int) {
-	log.Printf("%d", machineCount)
+func machineRequestAndParse(url string, machineDataGroup *KeyValueGroup) {
+	jsonResponse := httpGetRequest(url)
+
+	// Decode the JSON returned
+	err := json.Unmarshal(jsonResponse, &machineDataGroup)
+	checkForErrors(err)
 }
 
-func getState(machines *EtcdMachineGroup) string {
-	hostname := os.Getenv("DOCKERHOST_HOSTNAME")
-	hostname = strings.Split(hostname, ".")[0]
-
-	for _, machine := range *machines {
-		log.Printf("%s -- %s", machine.name, hostname)
-		if machine.name == hostname {
-			return machine.state
-		}
-	}
-
-	return ""
-}
-
-func setupFlags() int {
-	machineCount :=
-		flag.Int("machine_count", 0, "Number of machines to watch for")
-	flag.Parse()
-
-	return *machineCount
-}
-
-// Access the CoreOS / docker etcd API to extract machine information
-func main() {
-	if machineCount := setupFlags(); machineCount > 0 {
-		waitForMachines(machineCount)
-	}
+func waitForMachines(
+	machineDataGroup *KeyValueGroup, expectedMachineCount int) {
 
 	// Local etcd API host & port
 	port := "7001"
@@ -123,25 +103,76 @@ func main() {
 	etcdAPIPath := "v2/admin/machines"
 	url := fmt.Sprintf("%s/%s", etcdAPI, etcdAPIPath)
 
-	jsonResponse := httpGetRequest(url)
+	// Issue request to get machines & parse it. Sleep if cluster not ready yet
+	machineRequestAndParse(url, machineDataGroup)
+	for len(*machineDataGroup) < expectedMachineCount {
+		machineRequestAndParse(url, machineDataGroup)
+		log.Printf(
+			"Waiting for all (%d) machines to join cluster...",
+			expectedMachineCount)
+		time.Sleep(1 * time.Second)
+	}
+}
 
-	// Decode the JSON returned
+func getMachines(machines *EtcdMachineGroup, expectedMachineCount int) {
+
+	// Wait for all machines in the expected count to join cluster
 	var machineDataGroup KeyValueGroup
-	err := json.Unmarshal(jsonResponse, &machineDataGroup)
-	checkForErrors(err)
+	waitForMachines(&machineDataGroup, expectedMachineCount)
 
 	// Use machine data to create local objects of the etcd machines
-	machines := EtcdMachineGroup{}
 	for _, machineData := range machineDataGroup {
 		machine := EtcdMachine{}
 		machine.SetProperties(machineData)
-		machines = append(machines, machine)
+		*machines = append(*machines, machine)
 	}
 
+}
+
+func getState(machines *EtcdMachineGroup) string {
+	hostname := os.Getenv("DOCKERHOST_HOSTNAME")
+	hostname = strings.Split(hostname, ".")[0]
+
+	for _, machine := range *machines {
+		if machine.name == hostname {
+			return machine.state
+		}
+	}
+
+	return ""
+}
+
+func Usage() {
+	fmt.Printf("Usage: %s\n", os.Args[0])
+	flag.PrintDefaults()
+}
+
+func setupFlags() int {
+	expectedMachineCount :=
+		flag.Int("machine_count", 0, "Expected number of machines in cluster")
+	flag.Parse()
+
+	return *expectedMachineCount
+}
+
+// Access the CoreOS / docker etcd API to extract machine information
+func main() {
+	expectedMachineCount := setupFlags()
+
+	if expectedMachineCount <= 0 {
+		Usage()
+		os.Exit(2)
+	}
+
+	machines := EtcdMachineGroup{}
+	getMachines(&machines, expectedMachineCount)
+
+	// TODO: delete
 	for _, machine := range machines {
 		log.Printf("%s\n", machine.String())
 	}
 
 	state := getState(&machines)
+	// TODO: delete
 	log.Printf("%s", state)
 }

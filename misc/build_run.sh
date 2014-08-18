@@ -10,5 +10,5 @@ echo ""
 build_status=`echo $result | grep "Successfully built"`
 
 if [ "$build_status" ] ; then
-    docker run etcd_nodes
+    docker run -e DOCKERHOST_HOSTNAME=`hostname` etcd_nodes --machine_count=$1
 fi

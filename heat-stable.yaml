@@ -99,8 +99,8 @@ resources:
                         Requires=network-online.target
 
                         [Service]
-                        ExecStartPre=/usr/bin/docker pull metral/etcd_nodes
-                        ExecStart=/usr/bin/docker run metral/etcd_nodes --machine_count=%count%
+                        ExecStartPre
+                        ExecStart=/usr/bin/docker run -e DOCKERHOST_HOSTNAME=`hostname` metral/etcd_nodes --machine_count=%count%
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
