@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -86,6 +87,20 @@ func waitForMachines(machineCount int) {
 	log.Printf("%d", machineCount)
 }
 
+func getState(machines *EtcdMachineGroup) string {
+	hostname := os.Getenv("DOCKERHOST_HOSTNAME")
+	hostname = strings.Split(hostname, ".")[0]
+
+	for _, machine := range *machines {
+		log.Printf("%s -- %s", machine.name, hostname)
+		if machine.name == hostname {
+			return machine.state
+		}
+	}
+
+	return ""
+}
+
 func setupFlags() int {
 	machineCount :=
 		flag.Int("machine_count", 0, "Number of machines to watch for")
@@ -126,4 +141,7 @@ func main() {
 	for _, machine := range machines {
 		log.Printf("%s\n", machine.String())
 	}
+
+	state := getState(&machines)
+	log.Printf("%s", state)
 }
