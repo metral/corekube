@@ -32,6 +32,10 @@ parameters:
     type: string
     description: CoreOS Stable UUID
     default: "4ca73331-5063-429f-8a27-70de5099e747"
+  docker-tag:
+    type: string
+    description: Docker repo tag
+    default: "latest"
 
 resources:
 
@@ -100,9 +104,10 @@ resources:
 
                         [Service]
                         Environment="DOCKERHOST_HOSTNAME=coreos-%index%"
-                        ExecStartPre=/usr/bin/docker pull metral/etcd_nodes
-                        ExecStart=/usr/bin/docker run -e DOCKERHOST_HOSTNAME=${DOCKERHOST_HOSTNAME} metral/etcd_nodes --machine_count=3
+                        ExecStartPre=/usr/bin/docker pull metral/etcd_nodes:%tag%
+                        ExecStart=/usr/bin/docker run -e DOCKERHOST_HOSTNAME=${DOCKERHOST_HOSTNAME} metral/etcd_nodes:%tag% --machine_count=3
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
                 "%count%": { get_param: count }
+                "%tag%": { get_param: docker-tag }
