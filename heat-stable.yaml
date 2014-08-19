@@ -32,10 +32,14 @@ parameters:
     type: string
     description: CoreOS Stable UUID
     default: "4ca73331-5063-429f-8a27-70de5099e747"
-  docker-tag:
+  git-repo:
     type: string
-    description: Docker repo tag
-    default: "latest"
+    description: Public git repo url
+    default: "https://github.com/metral/corekube.git"
+  git-branch:
+    type: string
+    description: Git repo branch
+    default: "master"
 
 resources:
 
@@ -103,11 +107,14 @@ resources:
                         Requires=network-online.target
 
                         [Service]
-                        Environment="DOCKERHOST_HOSTNAME=coreos-%index%"
-                        ExecStartPre=/usr/bin/docker pull metral/etcd_nodes:%tag%
-                        ExecStart=/usr/bin/docker run -e DOCKERHOST_HOSTNAME=${DOCKERHOST_HOSTNAME} metral/etcd_nodes:%tag% --machine_count=3
+                        WorkingDirectory=/root
+                        Environment="DIR=corekube"
+                        ExecStartPre=/usr/bin/rm -rf $DIR
+                        ExecStartPre=/usr/bin/git clone -b %branch% %repo%
+                        ExecStart=/usr/bin/bash ${DIR}/misc/build_run.sh %branch% %count%
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
                 "%count%": { get_param: count }
-                "%tag%": { get_param: docker-tag }
+                "%repo%": { get_param: git-repo }
+                "%branch%": { get_param: git-branch }

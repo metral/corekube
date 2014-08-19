@@ -48,7 +48,7 @@ func (e *EtcdMachine) String() string {
 // Check for errors and panic, if found
 func checkForErrors(err error) {
 	if err != nil {
-		log.Fatal("%s", err)
+		log.Fatal("Error:\n%s", err)
 	}
 }
 
@@ -143,6 +143,22 @@ func getState(machines *EtcdMachineGroup) string {
 	return ""
 }
 
+func setFleetRoleMetadata(state string) {
+	os.Mkdir("/host_etc/fleet", os.FileMode(0777))
+
+	var role string = ""
+	switch state {
+	case "leader":
+		role = "master"
+	case "follower":
+		role = "minion"
+	}
+	metadata := fmt.Sprintf("metadata=kubernetes_role=%s", role)
+	d1 := []byte(metadata)
+	err := ioutil.WriteFile("/host_etc/fleet/fleet.conf", d1, 0644)
+	checkForErrors(err)
+}
+
 func Usage() {
 	fmt.Printf("Usage: %s\n", os.Args[0])
 	flag.PrintDefaults()
@@ -176,4 +192,6 @@ func main() {
 	state := getState(&machines)
 	// TODO: delete
 	log.Printf("%s", state)
+
+	setFleetRoleMetadata(state)
 }
