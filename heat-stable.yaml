@@ -105,7 +105,7 @@ resources:
                         [Service]
                         Environment="DOCKERHOST_HOSTNAME=coreos-%index%"
                         ExecStartPre=/usr/bin/docker pull metral/etcd_nodes:%tag%
-                        ExecStart=/usr/bin/docker run -e DOCKERHOST_HOSTNAME=${DOCKERHOST_HOSTNAME} metral/etcd_nodes:%tag% --machine_count=3
+                        ExecStart=/usr/bin/docker run -e DOCKERHOST_HOSTNAME=${DOCKERHOST_HOSTNAME} -v /etc:/host_etc metral/etcd_nodes:%tag% --machine_count=3
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
