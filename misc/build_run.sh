@@ -16,7 +16,7 @@ if [ "$BRANCH" != "latest" ]; then
     git checkout -b $BRANCH origin/$BRANCH
 fi
 
-result=`docker build --rm -t etcd_nodes $PARENTDIR/etcd_nodes/.`
+result=`docker build --rm -t etcd_nodes:$BRANCH $PARENTDIR/etcd_nodes/.`
 echo "$result"
 
 echo ""
