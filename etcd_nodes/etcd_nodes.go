@@ -132,7 +132,7 @@ func getMachines(machines *EtcdMachineGroup, expectedMachineCount int) {
 func getState(machines *EtcdMachineGroup) string {
 	hostname := os.Getenv("DOCKERHOST_HOSTNAME")
 	//log.Printf("hostname env: %s", hostname)
-	//hostname = strings.Split(hostname, ".")[0]
+	hostname = strings.Split(hostname, ".")[0]
 
 	for _, machine := range *machines {
 		if machine.name == hostname {
