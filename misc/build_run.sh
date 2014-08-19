@@ -2,7 +2,7 @@
 
 EXPECTEDARGS=2
 if [ $# -lt $EXPECTEDARGS ]; then
-    echo "Usage: $0 <DOCKER_REPO_TAG> <NUMBER OF EXPECTED MACHINES>"
+    echo "Usage: $0 <BRANCH> <NUMBER OF EXPECTED MACHINES>"
     exit 0
 fi
 
@@ -12,9 +12,7 @@ PARENTDIR="$(dirname $DIR)"
 BRANCH=$1
 MACHINE_COUNT=$2
 
-if [ "$BRANCH" != "latest" ]; then
-    git checkout -b $BRANCH origin/$BRANCH
-fi
+git checkout -b $BRANCH origin/$BRANCH
 
 result=`docker build --rm -t etcd_nodes:$BRANCH $PARENTDIR/etcd_nodes/.`
 echo "$result"
