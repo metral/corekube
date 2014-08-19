@@ -12,8 +12,6 @@ PARENTDIR="$(dirname $DIR)"
 BRANCH=$1
 MACHINE_COUNT=$2
 
-git checkout -b $BRANCH origin/$BRANCH
-
 result=`docker build --rm -t etcd_nodes:$BRANCH $PARENTDIR/etcd_nodes/.`
 echo "$result"
 
