@@ -6,7 +6,8 @@ if [ $# -lt $EXPECTEDARGS ]; then
     exit 0
 fi
 
-PARENTDIR="$(dirname `pwd`)"
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PARENTDIR="$(dirname $DIR)"
 
 BRANCH=$1
 MACHINE_COUNT=$2
