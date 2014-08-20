@@ -58,31 +58,6 @@ func getFullAPIURL(port, etcdAPIPath string) string {
 	return url
 }
 
-/*
-func WaitForMachines(
-	etcdAdminMachines *EtcdAdminMachines, expectedMachineCount int) {
-
-	// Issue request to get machines & parse it. Sleep if cluster not ready yet
-	url := getFullAPIURL("7001", "v2/admin/machines")
-	jsonResponse := httpGetRequest(url)
-	err := json.Unmarshal(jsonResponse, etcdAdminMachines)
-	checkForErrors(err)
-	totalMachines := len(*etcdAdminMachines)
-
-	for totalMachines < expectedMachineCount {
-		jsonResponse := httpGetRequest(url)
-		err := json.Unmarshal(jsonResponse, etcdAdminMachines)
-		checkForErrors(err)
-		totalMachines = len(*etcdAdminMachines)
-
-		log.Printf("Waiting for all (%d) machines to join "+
-			"etcd cluster. Currently at: (%d)",
-			expectedMachineCount, totalMachines)
-		time.Sleep(1 * time.Second)
-	}
-}
-*/
-
 func WaitForFleetMachines(
 	fleetMachines *FleetMachines, expectedMachineCount int) {
 
@@ -138,37 +113,6 @@ func WaitForFleetMachineMetadata(
 		}
 	*/
 }
-
-/*
-func GetState(etcdAdminMachines *EtcdAdminMachines) string {
-	hostname := os.Getenv("DOCKERHOST_HOSTNAME")
-	hostname = strings.Split(hostname, ".")[0]
-
-	for _, machine := range *etcdAdminMachines {
-		if machine.Name == hostname {
-			return machine.State
-		}
-	}
-
-	return ""
-}
-
-func SetFleetRoleMetadata(state string) {
-	os.Mkdir("/host_etc/fleet", os.FileMode(0777))
-
-	var role string = ""
-	switch state {
-	case "leader":
-		role = "master"
-	case "follower":
-		role = "minion"
-	}
-	metadata := fmt.Sprintf("metadata=kubernetes_role=%s", role)
-	d1 := []byte(metadata)
-	err := ioutil.WriteFile("/host_etc/fleet/fleet.conf", d1, 0644)
-	checkForErrors(err)
-}
-*/
 
 func Usage() {
 	fmt.Printf("Usage: %s\n", os.Args[0])
