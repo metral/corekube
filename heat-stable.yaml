@@ -3,21 +3,30 @@ heat_template_version: 2013-05-23
 description: Deploy a CoreOS cluster that operates a Kubernetes cluster
 
 parameters:
-  count:
-    description: Number of CoreOS machines to deploy
+  kubernetes-master-count:
+    description: Number of CoreOS machines to deploy as Kubernetes Master
     type: number
-    default: 3
+    default: 1
     constraints:
     - range:
-        min: 3
+        min: 1
+        max: 1
+      description: Must be between 1 and 1 servers.
+  kubernetes-minion-count:
+    description: Number of CoreOS machines to deploy as Kubernetes Minion
+    type: number
+    default: 2
+    constraints:
+    - range:
+        min: 2
         max: 12
-      description: Must be between 3 and 12 servers.
+      description: Must be between 2 and 12 servers.
   key-name:
     type: string
     description: Name of key-pair to be used for compute instance
   flavor:
     type: string
-    default: 4 GB Performance
+    default: 2 GB Performance
     constraints:
     - allowed_values:
       - 2 GB Performance
@@ -30,7 +39,7 @@ parameters:
         selected to deploy into.
   coreos-image:
     type: string
-    description: CoreOS Stable UUID
+    description: Rackspace Cloud Servers CoreOS Stable UUID
     default: "4ca73331-5063-429f-8a27-70de5099e747"
   git-repo:
     type: string
@@ -69,17 +78,17 @@ resources:
                 [Service]
                 ExecStart=/usr/bin/docker run -d --name etcd -p 4001:4001 -p 7001:7001 coreos/etcd
 
-  machines:
+  master_machines:
     type: "OS::Heat::ResourceGroup"
     properties:
-      count: { get_param: count }
+      count: { get_param: kubernetes-master-count }
       resource_def:
         type: OS::Nova::Server
         properties:
           key_name: { get_param: key-name }
           image: { get_param: coreos-image }
           flavor: { get_param: flavor }
-          name: coreos-%index%
+          name: kuberentes-master-%index%
           user_data_format: RAW
           config_drive: "true"
           user_data:
@@ -89,10 +98,13 @@ resources:
 
                 coreos:
                   etcd:
-                    name: coreos-%index%
+                    name: kubernetes-master-%index%
                     discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
                     addr: $private_ipv4:4001
                     peer-addr: $private_ipv4:7001
+
+                  fleet:
+                    metadata: kubernetes_role=master
                       
                   units:
                     - name: etcd.service
@@ -115,6 +127,43 @@ resources:
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-                "%count%": { get_param: count }
+                "%count%": { get_param: kubernetes-master-count}
                 "%repo%": { get_param: git-repo }
                 "%branch%": { get_param: git-branch }
+
+  minion_machines:
+    type: "OS::Heat::ResourceGroup"
+    properties:
+      count: { get_param: kubernetes-minion-count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          key_name: { get_param: key-name }
+          image: { get_param: coreos-image }
+          flavor: { get_param: flavor }
+          name: kuberentes-minion-%index%
+          user_data_format: RAW
+          config_drive: "true"
+          user_data:
+            str_replace:
+              template: |
+                #cloud-config
+
+                coreos:
+                  etcd:
+                    name: kubernetes-minion-%index%
+                    discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
+                    addr: $private_ipv4:4001
+                    peer-addr: $private_ipv4:7001
+
+                  fleet:
+                    metadata: kubernetes_role=minion
+                      
+                  units:
+                    - name: etcd.service
+                      command: start
+                    - name: fleet.service
+                      command: start
+              params:
+                "%discovery%": { get_attr: [etcd, networks, private, 0] }
+                "%uuid%": { get_attr: [coreos-cluster-uuid, value] }

@@ -58,6 +58,7 @@ func getFullAPIURL(port, etcdAPIPath string) string {
 	return url
 }
 
+/*
 func WaitForMachines(
 	etcdAdminMachines *EtcdAdminMachines, expectedMachineCount int) {
 
@@ -80,6 +81,7 @@ func WaitForMachines(
 		time.Sleep(1 * time.Second)
 	}
 }
+*/
 
 func WaitForFleetMachines(
 	fleetMachines *FleetMachines, expectedMachineCount int) {
@@ -137,6 +139,7 @@ func WaitForFleetMachineMetadata(
 	*/
 }
 
+/*
 func GetState(etcdAdminMachines *EtcdAdminMachines) string {
 	hostname := os.Getenv("DOCKERHOST_HOSTNAME")
 	hostname = strings.Split(hostname, ".")[0]
@@ -165,6 +168,7 @@ func SetFleetRoleMetadata(state string) {
 	err := ioutil.WriteFile("/host_etc/fleet/fleet.conf", d1, 0644)
 	checkForErrors(err)
 }
+*/
 
 func Usage() {
 	fmt.Printf("Usage: %s\n", os.Args[0])

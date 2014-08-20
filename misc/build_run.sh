@@ -22,9 +22,5 @@ echo ""
 build_status=`echo $result | grep "Successfully built"`
 
 if [ "$build_status" ] ; then
-    docker run -e DOCKERHOST_HOSTNAME=`hostname` -v /etc:/host_etc setup:$BRANCH --machine_count=$MACHINE_COUNT
+    docker run setup:$BRANCH --machine_count=$MACHINE_COUNT
 fi
-
-/usr/bin/systemctl restart fleet
-/usr/bin/sleep 3
-/usr/bin/fleetctl list-machines

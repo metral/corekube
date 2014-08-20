@@ -11,15 +11,15 @@ type FleetMachinesNode struct {
 	Key           string
 	Dir           bool
 	Nodes         []FleetMachinesNodeNodesValue
-	ModifiedIndex uint64
-	CreatedIndex  uint64
+	ModifiedIndex int
+	CreatedIndex  int
 }
 
 type FleetMachinesNodeNodesValue struct {
 	Key           string
 	Dir           bool
-	ModifiedIndex uint64
-	CreatedIndex  uint64
+	ModifiedIndex int
+	CreatedIndex  int
 }
 
 type FleetMachineObject struct {
@@ -31,9 +31,9 @@ type FleetMachineObjectNode struct {
 	Key           string
 	Value         string
 	Expiration    string
-	Ttl           uint64
-	ModifiedIndex uint64
-	CreatedIndex  uint64
+	Ttl           int
+	ModifiedIndex int
+	CreatedIndex  int
 }
 
 type FleetMachineObjectNodeValue struct {

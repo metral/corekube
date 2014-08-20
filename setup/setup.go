@@ -15,20 +15,6 @@ func main() {
 		os.Exit(2)
 	}
 
-	// Get etcd admin machines
-	var etcdAdminMachines lib.EtcdAdminMachines
-	lib.WaitForMachines(&etcdAdminMachines, expectedMachineCount)
-
-	// TODO: delete
-	for _, machine := range etcdAdminMachines {
-		log.Printf("%s\n", machine.String())
-	}
-
-	state := lib.GetState(&etcdAdminMachines)
-	lib.SetFleetRoleMetadata(state)
-	// TODO: delete
-	log.Printf("My state: %s", state)
-
 	// Get fleet machines & metadata
 	var fleetMachines lib.FleetMachines
 	lib.WaitForFleetMachines(&fleetMachines, expectedMachineCount)
