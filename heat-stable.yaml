@@ -127,7 +127,7 @@ resources:
                         WantedBy=sockets.target
                     - name: fleet.service
                       command: start
-                    - name: etcd-nodes.service
+                    - name: setup-kubernetes.service
                       command: start
                       content: |
                         [Unit]

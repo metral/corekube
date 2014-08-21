@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"setup/lib"
+	"setup_kubernetes/lib"
 )
 
 // Access the CoreOS / docker etcd API to extract machine information
