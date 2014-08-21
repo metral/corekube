@@ -106,6 +106,10 @@ resources:
                   fleet:
                     metadata: kubernetes_role=master
                       
+                  update:
+                    group: alpha
+                    reboot-strategy: off
+
                   units:
                     - name: etcd.service
                       command: start
@@ -135,7 +139,7 @@ resources:
                         Environment="DIR=corekube"
                         ExecStartPre=/usr/bin/rm -rf $DIR
                         ExecStartPre=/usr/bin/git clone -b %branch% %repo%
-                        ExecStart=/usr/bin/bash ${DIR}/misc/build_run.sh %branch% %count%
+                        ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch% %count%
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
@@ -170,6 +174,10 @@ resources:
 
                   fleet:
                     metadata: kubernetes_role=minion
+
+                  update:
+                    group: alpha
+                    reboot-strategy: off
                       
                   units:
                     - name: etcd.service

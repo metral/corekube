@@ -69,15 +69,15 @@ func WaitForFleetMachines(
 	totalMachines := len(fleetMachines.Node.Nodes)
 
 	for totalMachines < expectedMachineCount {
-		jsonResponse := httpGetRequest(url)
-		err := json.Unmarshal(jsonResponse, fleetMachines)
-		checkForErrors(err)
-		totalMachines = len(fleetMachines.Node.Nodes)
-
 		log.Printf("Waiting for all (%d) machines to be available "+
 			"in fleet. Currently at: (%d)",
 			expectedMachineCount, totalMachines)
 		time.Sleep(1 * time.Second)
+
+		jsonResponse := httpGetRequest(url)
+		err := json.Unmarshal(jsonResponse, fleetMachines)
+		checkForErrors(err)
+		totalMachines = len(fleetMachines.Node.Nodes)
 	}
 }
 
@@ -97,21 +97,21 @@ func WaitForFleetMachineMetadata(
 	err := json.Unmarshal(jsonResponse, &fleetMachineObject)
 	checkForErrors(err)
 
-	err = json.Unmarshal([]byte(fleetMachineObject.Node.Value), &fleetMachineObjectNodeValue)
+	err = json.Unmarshal(
+		[]byte(fleetMachineObject.Node.Value), &fleetMachineObjectNodeValue)
 	checkForErrors(err)
-	/*
-		for totalMetadataObjects < expectedMachineCount {
-			jsonResponse := httpGetRequest(url)
-			err := json.Unmarshal(jsonResponse, fleetMachineObject)
-			checkForErrors(err)
-			totalMetadataObjects := len(fleetMachineObject.Node.Value.Metadata)
 
-			log.Printf("Waiting for all (%d) machines metadata to be available "+
-				"in fleet. Currently at: (%d)",
-				expectedMachineCount, totalMetadataObjects)
-			time.Sleep(1 * time.Second)
-		}
-	*/
+	for len(fleetMachineObjectNodeValue.Metadata) == 0 ||
+		fleetMachineObjectNodeValue.Metadata["kubernetes_role"] == nil {
+		log.Printf("Waiting for machine (%s) metadata to be available "+
+			"in fleet...", fleetMachineObjectNodeValue.ID)
+		time.Sleep(1 * time.Second)
+
+		err = json.Unmarshal(
+			[]byte(fleetMachineObject.Node.Value), &fleetMachineObjectNodeValue)
+		checkForErrors(err)
+
+	}
 }
 
 func Usage() {

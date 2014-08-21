@@ -2,6 +2,8 @@ package lib
 
 import "fmt"
 
+type Map map[string]interface{}
+
 type FleetMachines struct {
 	Action string
 	Node   FleetMachinesNode
@@ -39,9 +41,9 @@ type FleetMachineObjectNode struct {
 type FleetMachineObjectNodeValue struct {
 	ID             string
 	PublicIP       string
-	Metadata       map[string]interface{}
+	Metadata       Map
 	Version        string
-	TotalResources map[string]interface{}
+	TotalResources Map
 }
 
 func (f FleetMachinesNodeNodesValue) String() string {
@@ -52,5 +54,13 @@ func (f FleetMachinesNodeNodesValue) String() string {
 		f.ModifiedIndex,
 		f.CreatedIndex,
 	)
+	return output
+}
+
+func (m Map) String() string {
+	output := ""
+	for k, v := range m {
+		output += fmt.Sprintf("(%s => %s) ", k, v)
+	}
 	return output
 }

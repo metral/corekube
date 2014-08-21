@@ -7,12 +7,11 @@ if [ $# -lt $EXPECTEDARGS ]; then
 fi
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PARENTDIR="$(dirname $DIR)"
 
 BRANCH=$1
 MACHINE_COUNT=$2
 
-result=`docker build --rm -t setup:$BRANCH $PARENTDIR/setup/.`
+result=`docker build --rm -t setup:$BRANCH $DIR/setup/.`
 echo "$result"
 
 echo ""
