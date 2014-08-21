@@ -39,8 +39,8 @@ parameters:
         selected to deploy into.
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Stable UUID
-    default: "4ca73331-5063-429f-8a27-70de5099e747"
+    description: Rackspace Cloud Servers CoreOS Alpha (399.0.0) UUID
+    default: "49d299c1-aacc-40b7-9ac0-df4132b385b3"
   git-repo:
     type: string
     description: Public git repo url
@@ -109,6 +109,18 @@ resources:
                   units:
                     - name: etcd.service
                       command: start
+                    - name: fleet.socket
+                      command: start
+                      content: |
+                        [Socket]
+                        # Talk to the API over a Unix domain socket (default)
+                        ListenStream=/var/run/fleet.sock
+                        # Talk to the API over an exposed port, uncomment to enable and choose a port
+                        ListenStream=10001
+                        Service=fleet.service
+
+                        [Install]
+                        WantedBy=sockets.target
                     - name: fleet.service
                       command: start
                     - name: etcd-nodes.service
