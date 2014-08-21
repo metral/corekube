@@ -1,0 +1,20 @@
+[Unit]
+ConditionFileIsExecutable=/opt/bin/kubelet
+Description=Kubernetes Kubelet
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+
+[Service]
+ExecStart=/opt/bin/kubelet \
+--address=0.0.0.0 \
+--port=10250 \
+--hostname_override=<MY_PRIVATE_IP> \
+--etcd_servers=http://127.0.0.1:4001 \
+--logtostderr=true
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]
+X-ConditionMachineMetadata=kubernetes_role=minion

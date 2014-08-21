@@ -1,0 +1,15 @@
+[Unit]
+ConditionFileIsExecutable=/opt/bin/proxy
+Description=Kubernetes Proxy
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+
+[Service]
+ExecStart=/opt/bin/proxy --etcd_servers=http://127.0.0.1:4001 --logtostderr=true
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]
+X-ConditionMachineMetadata=kubernetes_role=minion

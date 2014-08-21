@@ -52,8 +52,31 @@ parameters:
 
 resources:
 
+  master-subnet:
+    type: OS::Heat::RandomString
+    properties:
+      length: 1
+      character_sequences:
+        - sequence: "123456789"
+          min: 1
+
+  minion-subnet:
+    type: OS::Heat::RandomString
+    properties:
+      length: 2
+      character_sequences:
+        - sequence: "123456789"
+          min: 2
+
   coreos-cluster-uuid:
     type: OS::Heat::RandomString
+
+  priv_network:
+    type: Rackspace::Cloud::Network
+    properties:
+      label: kubernetes
+      cidr: 192.168.3.0/24
+
   etcd:
     type: OS::Nova::Server
     properties:
@@ -67,6 +90,10 @@ resources:
         #cloud-config
 
         coreos:
+          update:
+            group: alpha
+            reboot-strategy: off
+
           units:
             - name: private-etcd.service
               command: start
@@ -78,6 +105,73 @@ resources:
                 [Service]
                 ExecStart=/usr/bin/docker run -d --name etcd -p 4001:4001 -p 7001:7001 coreos/etcd
 
+  overlord:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: key-name }
+      image: { get_param: coreos-image }
+      flavor: { get_param: flavor }
+      name: "overlord"
+      user_data_format: RAW
+      config_drive: "true"
+      user_data:
+        str_replace:
+          template: |
+            #cloud-config
+
+            coreos:
+              etcd:
+                name: overlord
+                discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
+                addr: $private_ipv4:4001
+                peer-addr: $private_ipv4:7001
+
+              fleet:
+                public-ip: $private_ipv4
+                metadata: kubernetes_role=overlord
+                  
+              update:
+                group: alpha
+                reboot-strategy: off
+
+              units:
+                - name: etcd.service
+                  command: start
+                - name: fleet.socket
+                  command: start
+                  content: |
+                    [Socket]
+                    # Talk to the API over a Unix domain socket (default)
+                    ListenStream=/var/run/fleet.sock
+                    # Talk to the API over an exposed port, uncomment to enable and choose a port
+                    ListenStream=10001
+                    Service=fleet.service
+
+                    [Install]
+                    WantedBy=sockets.target
+                - name: fleet.service
+                  command: start
+                - name: setup-kubernetes.service
+                  command: start
+                  content: |
+                    [Unit]
+                    After=network-online.target
+                    Requires=network-online.target
+
+                    [Service]
+                    WorkingDirectory=/root
+                    Environment="DIR=corekube"
+                    ExecStartPre=/usr/bin/rm -rf $DIR
+                    ExecStartPre=/usr/bin/git clone -b %branch% %repo%
+                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch% 1 %master_count% %minion_count%
+          params:
+            "%discovery%": { get_attr: [etcd, networks, private, 0] }
+            "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
+            "%master_count%": { get_param: kubernetes-master-count }
+            "%minion_count%": { get_param: kubernetes-minion-count }
+            "%repo%": { get_param: git-repo }
+            "%branch%": { get_param: git-branch }
+
   master_machines:
     type: "OS::Heat::ResourceGroup"
     properties:
@@ -88,7 +182,11 @@ resources:
           key_name: { get_param: key-name }
           image: { get_param: coreos-image }
           flavor: { get_param: flavor }
-          name: kuberentes-master-%index%
+          name: kubernetes-master-%index%
+          networks:
+          - uuid: "00000000-0000-0000-0000-000000000000"
+          - uuid: "11111111-1111-1111-1111-111111111111"
+          - uuid: { get_resource: priv_network }
           user_data_format: RAW
           config_drive: "true"
           user_data:
@@ -104,8 +202,9 @@ resources:
                     peer-addr: $private_ipv4:7001
 
                   fleet:
+                    public-ip: $private_ipv4
                     metadata: kubernetes_role=master
-                      
+
                   update:
                     group: alpha
                     reboot-strategy: off
@@ -113,39 +212,66 @@ resources:
                   units:
                     - name: etcd.service
                       command: start
-                    - name: fleet.socket
-                      command: start
-                      content: |
-                        [Socket]
-                        # Talk to the API over a Unix domain socket (default)
-                        ListenStream=/var/run/fleet.sock
-                        # Talk to the API over an exposed port, uncomment to enable and choose a port
-                        ListenStream=10001
-                        Service=fleet.service
-
-                        [Install]
-                        WantedBy=sockets.target
                     - name: fleet.service
                       command: start
-                    - name: setup-kubernetes.service
+                    - name: cbr0.netdev
+                      command: start
+                      content: |
+                        [NetDev]
+                        Kind=bridge
+                        Name=cbr0
+                    - name: cbr0.network
+                      command: start
+                      content: |
+                        [Match]
+                        Name=cbr0
+
+                        [Network]
+                        Address=10.244.%subnet%.1%index%/16
+                    - name: vxlan0.netdev
+                      command: start
+                      content: |
+                        [NetDev]
+                        Kind=vxlan
+                        Name=vxlan0
+
+                        [VXLAN]
+                        Id=1
+                        Group=224.0.0.1
+                    - name: 49-eth2.network
+                      command: start
+                      content: |
+                        [Match]
+                        Name=eth2
+
+                        [Network]
+                        VXLAN=vxlan0
+                    - name: vxlan0.network
+                      command: start
+                      content: |
+                        [Match]
+                        Name=vxlan0
+
+                        [Network]
+                        Bridge=cbr0
+                    - name: docker.service
                       command: start
                       content: |
                         [Unit]
-                        After=network-online.target
-                        Requires=network-online.target
+                        After=network.target
+                        Description=Docker Application Container Engine
+                        Documentation=http://docs.docker.io
 
                         [Service]
-                        WorkingDirectory=/root
-                        Environment="DIR=corekube"
-                        ExecStartPre=/usr/bin/rm -rf $DIR
-                        ExecStartPre=/usr/bin/git clone -b %branch% %repo%
-                        ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch% %count%
+                        ExecStartPre=/bin/mount --make-rprivate /
+                        ExecStart=/usr/bin/docker -d -s=btrfs -H fd:// -b cbr0 --iptables=false
+
+                        [Install]
+                        WantedBy=multi-user.target
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-                "%count%": { get_param: kubernetes-master-count}
-                "%repo%": { get_param: git-repo }
-                "%branch%": { get_param: git-branch }
+                "%subnet%": { get_attr: [master-subnet, value] }
 
   minion_machines:
     type: "OS::Heat::ResourceGroup"
@@ -157,7 +283,11 @@ resources:
           key_name: { get_param: key-name }
           image: { get_param: coreos-image }
           flavor: { get_param: flavor }
-          name: kuberentes-minion-%index%
+          name: kubernetes-minion-%index%
+          networks:
+          - uuid: "00000000-0000-0000-0000-000000000000"
+          - uuid: "11111111-1111-1111-1111-111111111111"
+          - uuid: { get_resource: priv_network }
           user_data_format: RAW
           config_drive: "true"
           user_data:
@@ -173,6 +303,7 @@ resources:
                     peer-addr: $private_ipv4:7001
 
                   fleet:
+                    public-ip: $private_ipv4
                     metadata: kubernetes_role=minion
 
                   update:
@@ -184,6 +315,61 @@ resources:
                       command: start
                     - name: fleet.service
                       command: start
+                    - name: cbr0.netdev
+                      command: start
+                      content: |
+                        [NetDev]
+                        Kind=bridge
+                        Name=cbr0
+                    - name: cbr0.network
+                      command: start
+                      content: |
+                        [Match]
+                        Name=cbr0
+
+                        [Network]
+                        Address=10.244.%subnet%.1%index%/16
+                    - name: vxlan0.netdev
+                      command: start
+                      content: |
+                        [NetDev]
+                        Kind=vxlan
+                        Name=vxlan0
+
+                        [VXLAN]
+                        Id=1
+                        Group=224.0.0.1
+                    - name: 49-eth2.network
+                      command: start
+                      content: |
+                        [Match]
+                        Name=eth2
+
+                        [Network]
+                        VXLAN=vxlan0
+                    - name: vxlan0.network
+                      command: start
+                      content: |
+                        [Match]
+                        Name=vxlan0
+
+                        [Network]
+                        Bridge=cbr0
+                    - name: docker.service
+                      command: start
+                      content: |
+                        [Unit]
+                        After=network.target
+                        Description=Docker Application Container Engine
+                        Documentation=http://docs.docker.io
+
+                        [Service]
+                        ExecStartPre=/bin/mount --make-rprivate /
+                        ExecStart=/usr/bin/docker -d -s=btrfs -H fd:// -b cbr0 --iptables=false
+
+                        [Install]
+                        WantedBy=multi-user.target
               params:
                 "%discovery%": { get_attr: [etcd, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
+                "%subnet%": { get_attr: [minion-subnet, value] }

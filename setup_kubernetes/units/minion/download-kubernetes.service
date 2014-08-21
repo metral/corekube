@@ -1,0 +1,18 @@
+[Unit]
+After=network-online.target
+Before=kubelet.service
+Before=proxy.service
+Description=Download Kubernetes Binaries
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+Requires=network-online.target
+
+[Service]
+ExecStart=/usr/bin/wget -N -P /opt/bin http://storage.googleapis.com/kubernetes/kubelet
+ExecStart=/usr/bin/wget -N -P /opt/bin http://storage.googleapis.com/kubernetes/proxy
+ExecStart=/usr/bin/chmod +x /opt/bin/kubelet
+ExecStart=/usr/bin/chmod +x /opt/bin/proxy
+RemainAfterExit=yes
+Type=oneshot
+
+[X-Fleet]
+X-ConditionMachineMetadata=kubernetes_role=minion

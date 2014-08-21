@@ -9,7 +9,11 @@ fi
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 BRANCH=$1
-MACHINE_COUNT=$2
+OVERLORD_COUNT=$2
+MASTER_COUNT=$3
+MINION_COUNT=$4
+
+MACHINE_COUNT=$(($OVERLORD_COUNT + $MASTER_COUNT + $MINION_COUNT))
 
 result=`docker build --rm -t setup_kubernetes:$BRANCH $DIR/setup_kubernetes/.`
 echo "$result"
