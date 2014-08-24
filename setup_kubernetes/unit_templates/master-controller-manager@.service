@@ -2,6 +2,8 @@
 ConditionFileIsExecutable=/opt/bin/controller-manager
 Description=Kubernetes Controller Manager
 Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=master-download-kubernetes@<ID>.service
+Requires=master-download-kubernetes@<ID>.service
 
 [Service]
 ExecStart=/opt/bin/controller-manager \
@@ -15,3 +17,5 @@ WantedBy=multi-user.target
 
 [X-Fleet]
 X-ConditionMachineMetadata=kubernetes_role=master
+X-Conflicts=master-controller-manager@*.service
+X-ConditionMachineID=<ID>

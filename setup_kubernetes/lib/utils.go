@@ -114,15 +114,157 @@ func WaitForFleetMachineMetadata(
 	}
 }
 
+func createMasterUnits(
+	entity *FleetMachineObjectNodeValue,
+	minionIPAddrs string) {
+
+	files := map[string]string{
+		"api":        "master-apiserver@.service",
+		"controller": "master-controller-manager@.service",
+		"download":   "master-download-kubernetes@.service",
+	}
+
+	// Form apiserver service file from template
+	readfile, err := ioutil.ReadFile(
+		fmt.Sprintf("/templates/%s", files["api"]))
+	checkForErrors(err)
+	apiserver := string(readfile)
+	apiserver = strings.Replace(apiserver, "<ID>", entity.ID, -1)
+	apiserver = strings.Replace(
+		apiserver, "<MINION_IP_ADDRS>", minionIPAddrs, -1)
+
+	// Write apiserver service file
+	filename := strings.Replace(files["api"], "@", "@"+entity.ID, -1)
+	apiserver_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	err = ioutil.WriteFile(apiserver_file, []byte(apiserver), 0644)
+	checkForErrors(err)
+
+	// Form controller service file from template
+	readfile, err = ioutil.ReadFile(
+		fmt.Sprintf("/templates/%s", files["controller"]))
+	checkForErrors(err)
+	controller := string(readfile)
+	controller = strings.Replace(controller, "<ID>", entity.ID, -1)
+
+	// Write controller service file
+	filename = strings.Replace(files["controller"], "@", "@"+entity.ID, -1)
+	controller_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	err = ioutil.WriteFile(controller_file, []byte(controller), 0644)
+	checkForErrors(err)
+
+	// Form download service file from template
+	readfile, err = ioutil.ReadFile(
+		fmt.Sprintf("/templates/%s", files["download"]))
+	checkForErrors(err)
+	download := string(readfile)
+	download = strings.Replace(download, "<ID>", entity.ID, -1)
+
+	// Write download service file
+	filename = strings.Replace(files["download"], "@", "@"+entity.ID, -1)
+	download_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	err = ioutil.WriteFile(download_file, []byte(download), 0644)
+	checkForErrors(err)
+}
+
+func createMinionUnits(entity *FleetMachineObjectNodeValue) {
+	files := map[string]string{
+		"kubelet":  "minion-kubelet@.service",
+		"proxy":    "minion-proxy@.service",
+		"download": "minion-download-kubernetes@.service",
+	}
+
+	// Form kubelet service file from template
+	readfile, err := ioutil.ReadFile(
+		fmt.Sprintf("/templates/%s", files["kubelet"]))
+	checkForErrors(err)
+	kubelet := string(readfile)
+	kubelet = strings.Replace(kubelet, "<ID>", entity.ID, -1)
+	kubelet = strings.Replace(kubelet, "<IP_ADDR>", entity.PublicIP, -1)
+
+	// Write kubelet service file
+	filename := strings.Replace(files["kubelet"], "@", "@"+entity.ID, -1)
+	kubelet_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	err = ioutil.WriteFile(kubelet_file, []byte(kubelet), 0644)
+	checkForErrors(err)
+
+	// Form proxy service file from template
+	readfile, err = ioutil.ReadFile(
+		fmt.Sprintf("/templates/%s", files["proxy"]))
+	checkForErrors(err)
+	proxy := string(readfile)
+	proxy = strings.Replace(proxy, "<ID>", entity.ID, -1)
+
+	// Write proxy service file
+	filename = strings.Replace(files["proxy"], "@", "@"+entity.ID, -1)
+	proxy_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	err = ioutil.WriteFile(proxy_file, []byte(proxy), 0644)
+	checkForErrors(err)
+
+	// Form download service file from template
+	readfile, err = ioutil.ReadFile(
+		fmt.Sprintf("/templates/%s", files["download"]))
+	checkForErrors(err)
+	download := string(readfile)
+	download = strings.Replace(download, "<ID>", entity.ID, -1)
+
+	// Write download service file
+	filename = strings.Replace(files["download"], "@", "@"+entity.ID, -1)
+	download_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	err = ioutil.WriteFile(download_file, []byte(download), 0644)
+	checkForErrors(err)
+}
+
+func getMinionIPAddrs(
+	fleetMachineEntities *[]FleetMachineObjectNodeValue) string {
+	output := ""
+
+	for _, entity := range *fleetMachineEntities {
+		switch entity.Metadata["kubernetes_role"] {
+		case "minion":
+			output += entity.PublicIP + ","
+		}
+	}
+
+	k := strings.LastIndex(output, ",")
+	return output[:k]
+}
+
+func CreateUnitFiles(fleetMachineEntities *[]FleetMachineObjectNodeValue) {
+
+	perm := os.FileMode(os.ModeDir)
+	dir_name := "/units/kubernetes_units"
+	err := os.RemoveAll(dir_name)
+	checkForErrors(err)
+	os.Mkdir(dir_name, perm)
+
+	for _, entity := range *fleetMachineEntities {
+		switch entity.Metadata["kubernetes_role"] {
+		case "master":
+			minionIPAddrs := getMinionIPAddrs(fleetMachineEntities)
+			createMasterUnits(&entity, minionIPAddrs)
+		case "minion":
+			createMinionUnits(&entity)
+		}
+	}
+}
+
 func Usage() {
 	fmt.Printf("Usage: %s\n", os.Args[0])
 	flag.PrintDefaults()
 }
 
-func SetupFlags() int {
-	expectedMachineCount :=
-		flag.Int("machine_count", 0, "Expected number of machines in cluster")
+func SetupFlags() (int, int, int) {
+	masterCount :=
+		flag.Int("master_count", 1,
+			"Expected number of kubernetes masters in cluster")
+	minionCount :=
+		flag.Int("minion_count", 2,
+			"Expected number of kubernetes minions in cluster")
+	overlordCount :=
+		flag.Int("overlord_count", 1,
+			"Expected number of overlords in cluster")
+
 	flag.Parse()
 
-	return *expectedMachineCount
+	return *masterCount, *minionCount, *overlordCount
 }

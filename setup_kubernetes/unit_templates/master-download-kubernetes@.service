@@ -24,3 +24,5 @@ Type=oneshot
 
 [X-Fleet]
 X-ConditionMachineMetadata=kubernetes_role=master
+X-Conflicts=master-download-kubernetes@*.service
+X-ConditionMachineID=<ID>

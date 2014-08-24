@@ -16,3 +16,5 @@ Type=oneshot
 
 [X-Fleet]
 X-ConditionMachineMetadata=kubernetes_role=minion
+X-Conflicts=minion-download-kubernetes@*.service
+X-ConditionMachineID=<ID>

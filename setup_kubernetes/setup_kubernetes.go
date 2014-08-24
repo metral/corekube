@@ -8,7 +8,8 @@ import (
 
 // Access the CoreOS / docker etcd API to extract machine information
 func main() {
-	expectedMachineCount := lib.SetupFlags()
+	masterCount, minionCount, overlordCount := lib.SetupFlags()
+	expectedMachineCount := masterCount + minionCount + overlordCount
 
 	if expectedMachineCount <= 0 {
 		lib.Usage()
@@ -19,7 +20,7 @@ func main() {
 	var fleetMachines lib.FleetMachines
 	lib.WaitForFleetMachines(&fleetMachines, expectedMachineCount)
 
-	// TODO: delete
+	var fleetMachineEntities []lib.FleetMachineObjectNodeValue
 	for _, fleetMachinesNodeNodesValue := range fleetMachines.Node.Nodes {
 
 		// Get fleet metadata
@@ -29,6 +30,7 @@ func main() {
 			&fleetMachineObjectNodeValue,
 			expectedMachineCount)
 
+		fleetMachineEntities = append(fleetMachineEntities, fleetMachineObjectNodeValue)
 		log.Printf(
 			"\nFleet Machine:\n-- ID: %s\n-- PublicIP: %s\n-- Metadata: %s\n\n",
 			fleetMachineObjectNodeValue.ID,
@@ -36,4 +38,6 @@ func main() {
 			fleetMachineObjectNodeValue.Metadata.String(),
 		)
 	}
+
+	lib.CreateUnitFiles(&fleetMachineEntities)
 }

@@ -2,13 +2,15 @@
 ConditionFileIsExecutable=/opt/bin/apiserver
 Description=Kubernetes API Server
 Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=master-download-kubernetes@<ID>.service
+Requires=master-download-kubernetes@<ID>.service
 
 [Service]
 ExecStart=/opt/bin/apiserver \
 --address=127.0.0.1 \
 --port=8080 \
 --etcd_servers=http://127.0.0.1:4001 \
---machines=<MINION0_IP>,<MINION1_IP> \
+--machines=<MINION_IP_ADDRS> \
 --logtostderr=true
 Restart=always
 RestartSec=2
@@ -18,3 +20,5 @@ WantedBy=multi-user.target
 
 [X-Fleet]
 X-ConditionMachineMetadata=kubernetes_role=master
+X-Conflicts=master-apiserver@*.service
+X-ConditionMachineID=<ID>
