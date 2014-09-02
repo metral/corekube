@@ -1,6 +1,16 @@
 package lib
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/coreos/fleet/unit"
+)
 
 type Map map[string]interface{}
 
@@ -46,6 +56,19 @@ type FleetMachineObjectNodeValue struct {
 	TotalResources Map
 }
 
+type FleetUnitState struct {
+	Hash               string
+	MachineID          string
+	Name               string
+	SystemdActiveState string
+	SystemdLoadState   string
+	SystemdSubState    string
+}
+
+type FleetUnitStates struct {
+	States []FleetUnitState
+}
+
 func (f FleetMachinesNodeNodesValue) String() string {
 	output := fmt.Sprintf(
 		"Key: %s | Dir: %t | ModifiedIndex: %d | CreatedIndex: %d",
@@ -63,4 +86,90 @@ func (m Map) String() string {
 		output += fmt.Sprintf("(%s => %s) ", k, v)
 	}
 	return output
+}
+
+func lowerCasingOfUnitOptionsStr(json_str string) string {
+	json_str = strings.Replace(json_str, "Section", "section", -1)
+	json_str = strings.Replace(json_str, "Name", "name", -1)
+	json_str = strings.Replace(json_str, "Value", "value", -1)
+
+	return json_str
+}
+
+func StartUnitsInDir(path string) {
+	files, _ := ioutil.ReadDir(path)
+
+	for _, f := range files {
+		unitpath := fmt.Sprintf("v1-alpha/units/%s", f.Name())
+		url := getFullAPIURL("10001", unitpath)
+		filepath := fmt.Sprintf("%s/%s", path, f.Name())
+
+		readfile, err := ioutil.ReadFile(filepath)
+		checkForErrors(err)
+		content := string(readfile)
+
+		u, _ := unit.NewUnitFile(content)
+
+		options_bytes, _ := json.Marshal(u.Options)
+		options_str := lowerCasingOfUnitOptionsStr(string(options_bytes))
+
+		json_str := fmt.Sprintf(
+			`{"name": "%s", "desiredState":"launched", "options": %s}`,
+			f.Name(),
+			options_str)
+
+		resp := httpPutRequest(url, []byte(json_str))
+
+		if resp.StatusCode != 204 {
+			body, err := ioutil.ReadAll(resp.Body)
+			log.Printf("[Error] in HTTP Body: %s", body)
+			checkForErrors(err)
+		}
+	}
+}
+
+func stringInSlice(a string, list []os.FileInfo) bool {
+	for _, b := range list {
+		if b.Name() == a {
+			return true
+		}
+	}
+	return false
+}
+
+func CheckUnitsState(path, activeState, subState string) {
+
+	var fleetUnitStates FleetUnitStates
+
+	url := getFullAPIURL("10001", "v1-alpha/state")
+	jsonResponse := httpGetRequest(url)
+	err := json.Unmarshal(jsonResponse, &fleetUnitStates)
+	checkForErrors(err)
+
+	files, _ := ioutil.ReadDir(path)
+
+	totalKubernetesMachines := len(files)
+	activeExitedCount := 0
+	for activeExitedCount < totalKubernetesMachines {
+		for _, unit := range fleetUnitStates.States {
+			if stringInSlice(unit.Name, files) &&
+				unit.SystemdActiveState == activeState &&
+				unit.SystemdSubState == subState {
+				activeExitedCount += 1
+			}
+		}
+		if activeExitedCount == totalKubernetesMachines {
+			break
+		}
+		log.Printf("Waiting for (%d) services to be complete "+
+			"in fleet. Currently at: (%d)",
+			totalKubernetesMachines, activeExitedCount)
+		activeExitedCount = 0
+		time.Sleep(1 * time.Second)
+		jsonResponse := httpGetRequest(url)
+		err := json.Unmarshal(jsonResponse, &fleetUnitStates)
+		checkForErrors(err)
+	}
+
+	log.Printf("Unit files in '%s' have completed", path)
 }

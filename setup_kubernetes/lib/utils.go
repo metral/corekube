@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -16,7 +18,10 @@ import (
 // Check for errors and panic, if found
 func checkForErrors(err error) {
 	if err != nil {
-		log.Fatal("Error:\n%s", err)
+		pc, fn, line, _ := runtime.Caller(1)
+		msg := fmt.Sprintf("[Error] in %s[%s:%d] %v",
+			runtime.FuncForPC(pc).Name(), fn, line, err)
+		log.Fatal(msg)
 	}
 }
 
@@ -38,18 +43,26 @@ func getEtcdAPI(host string, port string) string {
 
 func httpGetRequest(url string) []byte {
 	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatal("%s", err)
-	}
+	checkForErrors(err)
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		log.Fatal("%s", err)
-	}
+	checkForErrors(err)
 
 	return body
+}
+
+func httpPutRequest(url string, json_data []byte) *http.Response {
+	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(json_data))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	checkForErrors(err)
+
+	defer resp.Body.Close()
+
+	return resp
 }
 
 func getFullAPIURL(port, etcdAPIPath string) string {
@@ -116,7 +129,9 @@ func WaitForFleetMachineMetadata(
 
 func createMasterUnits(
 	entity *FleetMachineObjectNodeValue,
-	minionIPAddrs string) {
+	minionIPAddrs string,
+	unitPathInfo []map[string]string,
+) {
 
 	files := map[string]string{
 		"api":        "master-apiserver@.service",
@@ -135,7 +150,7 @@ func createMasterUnits(
 
 	// Write apiserver service file
 	filename := strings.Replace(files["api"], "@", "@"+entity.ID, -1)
-	apiserver_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	apiserver_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(apiserver_file, []byte(apiserver), 0644)
 	checkForErrors(err)
 
@@ -148,7 +163,7 @@ func createMasterUnits(
 
 	// Write controller service file
 	filename = strings.Replace(files["controller"], "@", "@"+entity.ID, -1)
-	controller_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	controller_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(controller_file, []byte(controller), 0644)
 	checkForErrors(err)
 
@@ -161,12 +176,15 @@ func createMasterUnits(
 
 	// Write download service file
 	filename = strings.Replace(files["download"], "@", "@"+entity.ID, -1)
-	download_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	download_file := fmt.Sprintf("%s/%s",
+		unitPathInfo[0]["path"], filename)
 	err = ioutil.WriteFile(download_file, []byte(download), 0644)
 	checkForErrors(err)
 }
 
-func createMinionUnits(entity *FleetMachineObjectNodeValue) {
+func createMinionUnits(entity *FleetMachineObjectNodeValue,
+	unitPathInfo []map[string]string,
+) {
 	files := map[string]string{
 		"kubelet":  "minion-kubelet@.service",
 		"proxy":    "minion-proxy@.service",
@@ -183,7 +201,7 @@ func createMinionUnits(entity *FleetMachineObjectNodeValue) {
 
 	// Write kubelet service file
 	filename := strings.Replace(files["kubelet"], "@", "@"+entity.ID, -1)
-	kubelet_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	kubelet_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(kubelet_file, []byte(kubelet), 0644)
 	checkForErrors(err)
 
@@ -196,7 +214,7 @@ func createMinionUnits(entity *FleetMachineObjectNodeValue) {
 
 	// Write proxy service file
 	filename = strings.Replace(files["proxy"], "@", "@"+entity.ID, -1)
-	proxy_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	proxy_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(proxy_file, []byte(proxy), 0644)
 	checkForErrors(err)
 
@@ -209,7 +227,8 @@ func createMinionUnits(entity *FleetMachineObjectNodeValue) {
 
 	// Write download service file
 	filename = strings.Replace(files["download"], "@", "@"+entity.ID, -1)
-	download_file := fmt.Sprintf("/units/kubernetes_units/%s", filename)
+	download_file := fmt.Sprintf("%s/%s",
+		unitPathInfo[0]["path"], filename)
 	err = ioutil.WriteFile(download_file, []byte(download), 0644)
 	checkForErrors(err)
 }
@@ -229,23 +248,30 @@ func getMinionIPAddrs(
 	return output[:k]
 }
 
-func CreateUnitFiles(fleetMachineEntities *[]FleetMachineObjectNodeValue) {
+func CreateUnitFiles(
+	fleetMachineEntities *[]FleetMachineObjectNodeValue,
+	unitPathInfo []map[string]string,
+) {
 
 	perm := os.FileMode(os.ModeDir)
-	dir_name := "/units/kubernetes_units"
-	err := os.RemoveAll(dir_name)
-	checkForErrors(err)
-	os.Mkdir(dir_name, perm)
+
+	for _, v := range unitPathInfo {
+		err := os.RemoveAll(v["path"])
+		checkForErrors(err)
+
+		os.MkdirAll(v["path"], perm)
+	}
 
 	for _, entity := range *fleetMachineEntities {
 		switch entity.Metadata["kubernetes_role"] {
 		case "master":
 			minionIPAddrs := getMinionIPAddrs(fleetMachineEntities)
-			createMasterUnits(&entity, minionIPAddrs)
+			createMasterUnits(&entity, minionIPAddrs, unitPathInfo)
 		case "minion":
-			createMinionUnits(&entity)
+			createMinionUnits(&entity, unitPathInfo)
 		}
 	}
+	log.Printf("Created systemd unit files for kubernetes deployment")
 }
 
 func Usage() {
