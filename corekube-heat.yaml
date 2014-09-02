@@ -15,7 +15,7 @@ parameters:
   kubernetes-minion-count:
     description: Number of CoreOS machines to deploy as Kubernetes Minion
     type: number
-    default: 2
+    default: 3
     constraints:
     - range:
         min: 2
