@@ -26,7 +26,7 @@ parameters:
     description: Name of key-pair to be used for compute instance
   flavor:
     type: string
-    default: 2 GB Performance
+    default: 4 GB Performance
     constraints:
     - allowed_values:
       - 2 GB Performance
