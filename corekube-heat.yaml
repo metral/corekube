@@ -65,13 +65,13 @@ resources:
       label: kubernetes
       cidr: 192.168.3.0/24
 
-  etcd:
+  discovery:
     type: OS::Nova::Server
     properties:
       key_name: { get_param: key-name }
       image: { get_param: coreos-image }
       flavor: { get_param: flavor }
-      name: "etcd"
+      name: "discovery"
       user_data_format: RAW
       config_drive: "true"
       user_data: |
@@ -83,7 +83,7 @@ resources:
             reboot-strategy: off
 
           units:
-            - name: private-etcd.service
+            - name: private-discovery.service
               command: start
               content: |
                 [Unit]
@@ -91,7 +91,7 @@ resources:
                 Requires=network-online.target
 
                 [Service]
-                ExecStart=/usr/bin/docker run -d --name etcd -p 4001:4001 -p 7001:7001 coreos/etcd
+                ExecStart=/usr/bin/docker run -d --name discovery -p 4001:4001 -p 7001:7001 coreos/etcd
 
   overlord:
     type: OS::Nova::Server
@@ -222,7 +222,7 @@ resources:
                     Restart=always
                     RestartSec=10s
           params:
-            "%discovery%": { get_attr: [etcd, networks, private, 0] }
+            "%discovery%": { get_attr: [discovery, networks, private, 0] }
             "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
             "%master_count%": { get_param: kubernetes-master-count }
             "%minion_count%": { get_param: kubernetes-minion-count }
@@ -360,7 +360,7 @@ resources:
                         Restart=always
                         RestartSec=10s
               params:
-                "%discovery%": { get_attr: [etcd, networks, private, 0] }
+                "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
                 "%public_key%": { get_param: public-key }
 
@@ -495,6 +495,6 @@ resources:
                         Restart=always
                         RestartSec=10s
               params:
-                "%discovery%": { get_attr: [etcd, networks, private, 0] }
+                "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
                 "%public_key%": { get_param: public-key }
