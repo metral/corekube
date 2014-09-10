@@ -118,6 +118,10 @@ The Overlord's tasks are best described in the following figure:
 <a name="overlord-tasks"></a>
 To view the Overlord's progress and status, log into the the "overlord" server and examine the Docker container, it operates: "setup\_kubernetes"
 
+**Note** Building the setup\_kubernetes container and running it can take
+several minutes, so refresh the following commands below until its output
+resembles yours.
+
 Review the Docker image pulled:
 
 ```
