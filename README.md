@@ -191,7 +191,7 @@ the [examples](https://github.com/GoogleCloudPlatform/kubernetes#where-to-go-nex
 A great first set of steps is to:
 
 * Log into the Kubernetes Master node as root using your RAX SSH keypair
-* Change to the core user: ```$ su core```
+* Change to the core user: ```$ su -l core```
 * Run the commands listed in the [Guestbook example](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/examples/guestbook/README.md)
 
 **Note:**
