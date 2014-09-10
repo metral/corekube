@@ -56,6 +56,8 @@ the rest of the infrastructure.
 
 Therefore, by the cluster nodes directly connecting to the discovery node, they have the information necessary to communicate with each other via fleetctl - the mechanism with which we deploy the Kubernetes role onto the designated machine.
 
+<p align="center"><img src="images/discovery.png"></p>
+
 **Networking**
 
 Once each machine has booted & connected their etcd service to the private discovery node (and fleet/fleetctl is ready to make use of this connection), a network architecture must be established to allow the containers that the Kuberentes nodes operate to communicate with one-another on their own subnet.
