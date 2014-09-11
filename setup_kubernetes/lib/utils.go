@@ -279,18 +279,15 @@ func Usage() {
 	flag.PrintDefaults()
 }
 
-func SetupFlags() (int, int, int) {
+func SetupFlags() (int, int) {
 	masterCount :=
 		flag.Int("master_count", 1,
 			"Expected number of kubernetes masters in cluster")
 	minionCount :=
 		flag.Int("minion_count", 2,
 			"Expected number of kubernetes minions in cluster")
-	overlordCount :=
-		flag.Int("overlord_count", 1,
-			"Expected number of overlords in cluster")
 
 	flag.Parse()
 
-	return *masterCount, *minionCount, *overlordCount
+	return *masterCount, *minionCount
 }

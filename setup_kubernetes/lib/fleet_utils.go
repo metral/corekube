@@ -100,30 +100,32 @@ func StartUnitsInDir(path string) {
 	files, _ := ioutil.ReadDir(path)
 
 	for _, f := range files {
-		unitpath := fmt.Sprintf("v1-alpha/units/%s", f.Name())
-		url := getFullAPIURL("10001", unitpath)
-		filepath := fmt.Sprintf("%s/%s", path, f.Name())
+		statusCode := 0
+		for statusCode != 204 {
+			unitpath := fmt.Sprintf("v1-alpha/units/%s", f.Name())
+			url := getFullAPIURL("10001", unitpath)
+			filepath := fmt.Sprintf("%s/%s", path, f.Name())
 
-		readfile, err := ioutil.ReadFile(filepath)
-		checkForErrors(err)
-		content := string(readfile)
-
-		u, _ := unit.NewUnitFile(content)
-
-		options_bytes, _ := json.Marshal(u.Options)
-		options_str := lowerCasingOfUnitOptionsStr(string(options_bytes))
-
-		json_str := fmt.Sprintf(
-			`{"name": "%s", "desiredState":"launched", "options": %s}`,
-			f.Name(),
-			options_str)
-
-		resp := httpPutRequest(url, []byte(json_str))
-
-		if resp.StatusCode != 204 {
-			body, err := ioutil.ReadAll(resp.Body)
-			log.Printf("[Error] in HTTP Body: %s", body)
+			readfile, err := ioutil.ReadFile(filepath)
 			checkForErrors(err)
+			content := string(readfile)
+
+			u, _ := unit.NewUnitFile(content)
+
+			options_bytes, _ := json.Marshal(u.Options)
+			options_str := lowerCasingOfUnitOptionsStr(string(options_bytes))
+
+			json_str := fmt.Sprintf(
+				`{"name": "%s", "desiredState":"launched", "options": %s}`,
+				f.Name(),
+				options_str)
+
+			resp := httpPutRequest(url, []byte(json_str))
+			statusCode = resp.StatusCode
+
+			if statusCode != 204 {
+				time.Sleep(1 * time.Second)
+			}
 		}
 	}
 }

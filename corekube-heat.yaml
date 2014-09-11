@@ -117,10 +117,6 @@ resources:
                 addr: $private_ipv4:4001
                 peer-addr: $private_ipv4:7001
 
-              fleet:
-                public-ip: $private_ipv4
-                metadata: kubernetes_role=overlord
-                  
               update:
                 group: alpha
                 reboot-strategy: off
@@ -128,8 +124,32 @@ resources:
               units:
                 - name: etcd.service
                   command: start
-                - name: fleet.service
+                - name: fleet.socket
                   command: start
+                  content: |
+                    [Socket]
+                    # Talk to the API over a Unix domain socket (default)
+                    ListenStream=/var/run/fleet.sock
+                    # Talk to the API over an exposed port, uncomment to enable and choose a port
+                    ListenStream=10001
+                    Service=fleet-local.service
+
+                    [Install]
+                    WantedBy=sockets.target
+                - name: fleet-local.service
+                  command: stop
+                  content: |
+                    [Unit]
+                    Description=fleet-local
+                    Wants=etcd.service
+                    After=etcd.service
+
+                    [Service]
+                    Environment=FLEET_PUBLIC_IP=$private_ipv4
+                    Environment=FLEET_METADATA=kubernetes_role=overlord
+                    ExecStart=/usr/bin/fleet
+                    Restart=always
+                    RestartSec=10s
                 - name: setup-kubernetes.service
                   command: start
                   content: |
@@ -142,51 +162,7 @@ resources:
                     Environment="DIR=corekube"
                     ExecStartPre=/usr/bin/rm -rf $DIR
                     ExecStartPre=/usr/bin/git clone -b %branch% %repo%
-                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch% %master_count% %minion_count% 1
-                - name: update-fleet.service
-                  command: start
-                  content: |
-                    [Unit]
-                    Description=Download & replace Fleet v0.7.1 local
-                    After=network-online.target
-                    Requires=network-online.target
-
-                    [Service]
-                    Type=oneshot
-                    ExecStart=/usr/bin/wget -q -P /root/ https://github.com/coreos/fleet/releases/download/v0.7.1/fleet-v0.7.1-linux-amd64.tar.gz ; /usr/bin/tar xfz /root/fleet-v0.7.1-linux-amd64.tar.gz -C /root
-                - name: fleet.socket
-                  command: start
-                  content: |
-                    [Unit]
-                    After=update-fleet.service
-                    Requires=update-fleet.service
-
-                    [Socket]
-                    # Talk to the API over a Unix domain socket (default)
-                    ListenStream=/var/run/fleet.sock
-                    # Talk to the API over an exposed port, uncomment to enable and choose a port
-                    ListenStream=10001
-                    Service=fleet-local.service
-
-                    [Install]
-                    WantedBy=sockets.target
-                - name: fleet-local.service
-                  command: start
-                  content: |
-                    [Unit]
-                    Description=fleet-local
-                    Wants=etcd.service
-                    After=etcd.service
-                    Wants=update-fleet.service
-                    After=update-fleet.service
-
-                    [Service]
-                    Environment=FLEET_PUBLIC_IP=$private_ipv4
-                    Environment=FLEET_METADATA=kubernetes_role=overlord
-                    ExecStartPre=/usr/bin/systemctl stop fleet.service
-                    ExecStart=/root/fleet-v0.7.1-linux-amd64/fleet
-                    Restart=always
-                    RestartSec=10s
+                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch% %master_count% %minion_count%
           params:
             "%discovery%": { get_attr: [discovery, networks, private, 0] }
             "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
@@ -295,34 +271,6 @@ resources:
 
                         [Install]
                         WantedBy=multi-user.target
-                    - name: update-fleet.service
-                      command: start
-                      content: |
-                        [Unit]
-                        Description=Download & replace Fleet v0.7.1 local
-                        After=network-online.target
-                        Requires=network-online.target
-
-                        [Service]
-                        Type=oneshot
-                        ExecStart=/usr/bin/wget -q -P /root/ https://github.com/coreos/fleet/releases/download/v0.7.1/fleet-v0.7.1-linux-amd64.tar.gz ; /usr/bin/tar xfz /root/fleet-v0.7.1-linux-amd64.tar.gz -C /root
-                    - name: fleet-local.service
-                      command: start
-                      content: |
-                        [Unit]
-                        Description=fleet-local
-                        Wants=etcd.service
-                        After=etcd.service
-                        Wants=update-fleet.service
-                        After=update-fleet.service
-
-                        [Service]
-                        Environment=FLEET_PUBLIC_IP=$private_ipv4
-                        Environment=FLEET_METADATA=kubernetes_role=master
-                        ExecStartPre=/usr/bin/systemctl stop fleet.service
-                        ExecStart=/root/fleet-v0.7.1-linux-amd64/fleet
-                        Restart=always
-                        RestartSec=10s
               params:
                 "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
@@ -427,34 +375,6 @@ resources:
 
                         [Install]
                         WantedBy=multi-user.target
-                    - name: update-fleet.service
-                      command: start
-                      content: |
-                        [Unit]
-                        Description=Download & replace Fleet v0.7.1 local
-                        After=network-online.target
-                        Requires=network-online.target
-
-                        [Service]
-                        Type=oneshot
-                        ExecStart=/usr/bin/wget -q -P /root/ https://github.com/coreos/fleet/releases/download/v0.7.1/fleet-v0.7.1-linux-amd64.tar.gz ; /usr/bin/tar xfz /root/fleet-v0.7.1-linux-amd64.tar.gz -C /root
-                    - name: fleet-local.service
-                      command: start
-                      content: |
-                        [Unit]
-                        Description=fleet-local
-                        Wants=etcd.service
-                        After=etcd.service
-                        Wants=update-fleet.service
-                        After=update-fleet.service
-
-                        [Service]
-                        Environment=FLEET_PUBLIC_IP=$private_ipv4
-                        Environment=FLEET_METADATA=kubernetes_role=minion
-                        ExecStartPre=/usr/bin/systemctl stop fleet.service
-                        ExecStart=/root/fleet-v0.7.1-linux-amd64/fleet
-                        Restart=always
-                        RestartSec=10s
               params:
                 "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
