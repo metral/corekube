@@ -37,14 +37,10 @@ parameters:
       description: |
         Must be a valid Rackspace Cloud Server flavor for the region you have
         selected to deploy into.
-  public-key:
-    type: string
-    description: Public SSH key to use with Fleet
-    default: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCn8g4xaL/A3C9M89rDNcSLj4mUm4iOF6gN3hvdqnQD0GHM81RP3U6Nm6QbIR7Vv8xAvnpLooK9tEIS9f4xpEjcurV0w7m7iYxhw0WvyxEt7HlTixe1rkinJe4GvWdsWR71kjwaFuYzSHpM0c87qYM8fQhW2UvPy90Yi2EAiIvyOlIrICpljY0DrPokUvHXnr+whdmNydZVxl93Qxegj55BDZq+SglbLmlghdhsrb6MVMefpMxMtHtq90ejZ3Dah2/eKMvmc62eMHiz6x338HuZB2PQbkpfg7lH1B10NjAV7ylonPD7YpwATBatQw37GtEBV1HQbJr6HPtNKbqOiMW1 core@coreos"
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Alpha (410.0.0) UUID
-    default: "78a24bc3-2545-433b-8067-a5143c04a3c3"
+    description: Rackspace Cloud Servers CoreOS Alpha (423.0.0) UUID
+    default: "e90d62b9-0f01-4da9-9e06-79b8ddf42a70"
   git-repo:
     type: string
     description: Public git repo url
@@ -108,36 +104,6 @@ resources:
             #cloud-config
 
             write_files:
-              - content: |
-                  -----BEGIN RSA PRIVATE KEY-----
-                  MIIEpQIBAAKCAQEAp/IOMWi/wNwvTPPawzXEi4+JlJuIjheoDd4b3ap0A9BhzPNU
-                  T91OjZukGyEe1b/MQL56S6KCvbRCEvX+MaRI3Lq1dMO5u4mMYcNFr8sRLex5U4sX
-                  ta5IpyXuBr1nbFke9ZI8GhbmM0h6TNHPO6mDPH0IVtlLz8vdGIthAIiL8jpSKyAq
-                  ZY2NA6z6JFLx156/sIXZjcnWVcZfd0MXoI+eQQ2avkoJWy5pYIXYbK2+jFTHn6TM
-                  TLR7avdHo2dw2odv3ijL5nOtnjB4s+sd9/B7mQdj0G5KX4O5R9QddDYwFe8paJzw
-                  +2KcAEwWrUMN+xrRAVdR0Gya+hz7TSm6jojFtQIDAQABAoIBAGikNxeuDpwaFRa7
-                  cfjjjXzviGehqSnvr3REidRJmlOuCOHsUwIYABPXgB6vOkkwYhGNHSH3NcMBh5HM
-                  1/8SP5vYcas5MIabI27efpMT0bZtewMEzVcUKoyK444rgT9PIC0eWnhfADu/0wP+
-                  TkL8UZrkxMdoSQZGHZJndZ8hdSENFo1GIySQw6F+Fad5LhwElmXPEm1/cxsLCfmI
-                  Rq+J83WSKtDbU0mFLyA7f/cOORJPV5n8J6SiIKRMoxHYln9A8DbxHhideNEM9ON8
-                  e8KcbpIDVy+BUUf4Q+gkJdRpuKlU/IbJriYOSFHI0YtFv0DzTVPfOqL3j6CPZ6MK
-                  xy9QyYECgYEA3qzU6393Sx6g5QJ/0QFSvIYp6zym+jDKXlq7gqlL+5O9y3w8VGtA
-                  PDS3M/RSNDonEpyoIPSP0qOEG9TKRYi4QhqwiEvuTyxBT0ijljWxFazAQ1qrDRV9
-                  8gt5pz16jW6yn6rWjIqqBZdHfjphsmC9gByKU33alzP0/uXkx216JMUCgYEAwRRp
-                  9mvi+THI+AugT+MIID1rym2P12bcc28+uAmUPVsWDfT9mASagKTgLsRgtJXPGqdO
-                  dfM79eN9m29ZGFy74p7i7FY54LR6U+jVAfpYEQ8iuEWPrQZa0MzVwPPkhFQSAhNM
-                  nKPM7DlJ/PhLjmRx9xw3vl/lyzMCdO8Sbi6cjDECgYEApbS0FjQbEDnQvdtoRp7X
-                  dRfaJgZStCiO0DxxAcD+nE7LlJv1QVU2zhbkprMQYXFNFlqh+zRDuxqX+yYVCD2/
-                  8OFvsV3gD+b9CwUhR2zZRSnzQaw9UlVGDlNfyobDpnBUWOGHG7ss31A+kb7caSP4
-                  oVeb0Jn9izvM+8sUvxvHI4kCgYEAqQ3csXxJIXNryXM0jH32UXQ1+unvNeTERPY0
-                  biNE/mvQZawKlp4BQX4bJBehrLw2t9mhozizWVo0UnIuCly3zXbcrZ3Z01tyeCG2
-                  z6KIlXcxKTMO16pmvcd7qRRjE1Ig6lxHiicJeBO5KpukXCqqdnjoffGtXDtvfT8O
-                  XhbFzyECgYEArzXO7hPLGV67yg7tbQDdDtVtufJdTG1lQ9tUWONtkfpywUG6R8Bk
-                  h1KDIp8O4PR3Ce26w4Put7NSlYy8vMAw8/yjf1k6vV34vvm7slAnWTwhvI2cJugR
-                  Vl/vxnRB+yLhA8FHRr7Xa9Fy/oTUnxo/vcsrn4HQP3qGeNKH1voklf4=
-                  -----END RSA PRIVATE KEY-----
-                path: /root/.ssh/id_rsa
-                permissions: '0600'
               - content: |
                   StrictHostKeyChecking no
                   UserKnownHostsFile /dev/null
@@ -251,8 +217,6 @@ resources:
               template: |
                 #cloud-config
 
-                ssh_authorized_keys:
-                    - %public_key%
                 coreos:
                   etcd:
                     name: kubernetes-master-%index%
@@ -362,7 +326,6 @@ resources:
               params:
                 "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-                "%public_key%": { get_param: public-key }
 
   minion_machines:
     type: "OS::Heat::ResourceGroup"
@@ -386,8 +349,6 @@ resources:
               template: |
                 #cloud-config
 
-                ssh_authorized_keys:
-                    - %public_key%
                 coreos:
                   etcd:
                     name: kubernetes-minion-%index%
@@ -497,4 +458,3 @@ resources:
               params:
                 "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-                "%public_key%": { get_param: public-key }
