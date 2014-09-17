@@ -136,6 +136,7 @@ func createMasterUnits(
 	files := map[string]string{
 		"api":        "master-apiserver@.service",
 		"controller": "master-controller-manager@.service",
+		"scheduler":  "master-scheduler@.service",
 		"download":   "master-download-kubernetes@.service",
 	}
 
@@ -165,6 +166,19 @@ func createMasterUnits(
 	filename = strings.Replace(files["controller"], "@", "@"+entity.ID, -1)
 	controller_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(controller_file, []byte(controller), 0644)
+	checkForErrors(err)
+
+	// Form scheduler service file from template
+	readfile, err = ioutil.ReadFile(
+		fmt.Sprintf("/templates/%s", files["scheduler"]))
+	checkForErrors(err)
+	scheduler := string(readfile)
+	scheduler = strings.Replace(scheduler, "<ID>", entity.ID, -1)
+
+	// Write scheduler service file
+	filename = strings.Replace(files["scheduler"], "@", "@"+entity.ID, -1)
+	scheduler_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
+	err = ioutil.WriteFile(scheduler_file, []byte(scheduler), 0644)
 	checkForErrors(err)
 
 	// Form download service file from template

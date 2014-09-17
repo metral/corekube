@@ -1,0 +1,20 @@
+[Unit]
+ConditionFileIsExecutable=/opt/bin/scheduler
+Description=Kubernetes Scheduler
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=master-download-kubernetes@<ID>.service
+Requires=master-download-kubernetes@<ID>.service
+
+[Service]
+ExecStart=/opt/bin/scheduler \
+--master=127.0.0.1:8080 \
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+
+[X-Fleet]
+X-ConditionMachineMetadata=kubernetes_role=master
+X-Conflicts=master-scheduler@*.service
+X-ConditionMachineID=<ID>
