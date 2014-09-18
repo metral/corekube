@@ -3,6 +3,8 @@ Last Update: 09/10/2014
 
 ## TL;DR
 
+#### Blog Post
+
 [Full Blog Post on Rackspace Developer Blog](https://developer.rackspace.com/blog/running-coreos-and-kubernetes/)
 
 #### Corekube Deployment
