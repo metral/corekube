@@ -104,6 +104,12 @@ off of the Heat machine index in the resource group are known hacks and are *not
 creating the appropriate network for the Docker containers that Kubernetes
 manages may be better suited with recently-released projects such as [Rudder](https://github.com/coreos/rudder) & [Weave](https://github.com/zettio/weave/). However, it is not in the near-term scope of Corekube to adopt one technology over the other.
 
+**Note**: If you have RackConnect enabled you will require rules like the ones
+below.  If you don't know what RackConnect is, you may safely ignore this.
+
+* Dedicated -> Cloud Source=Network [192.168.3.0/24] Destination Type [All] Protocol [All] 
+* Dedicated -> Cloud Source=Network [10.244.0.0/15] Destination Type [All] Protocol [All]
+
 **Overlord**
 
 As you may have noticed in the "Cluster Discovery" figure above, there is an additional CoreOS server in addendum to the Kubernetes machines: the Overlord.
