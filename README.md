@@ -161,12 +161,6 @@ $ docker logs 14678dc12d55
 
 2014/09/09 03:36:45
 Fleet Machine:
--- ID: 7ec17e1f7e9d40e0ba247e1cde257cfd
--- PublicIP: 10.208.196.197
--- Metadata: (kubernetes_role => overlord)
-
-2014/09/09 03:36:45
-Fleet Machine:
 -- ID: ca2ebc1eec234e6da36a2cb059517e89
 -- PublicIP: 10.208.198.136
 -- Metadata: (kubernetes_role => master)
