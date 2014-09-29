@@ -1,7 +1,10 @@
 ## Corekube
-Last Update: 09/10/2014
+Last Update: 09/29/2014
 
 ## TL;DR
+
+#### Version
+CoreOS version used: [452.0.0 - Alpha](https://coreos.com/releases/#452.0.0)
 
 #### Blog Post
 
