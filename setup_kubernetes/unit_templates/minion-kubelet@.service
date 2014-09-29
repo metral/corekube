@@ -20,5 +20,4 @@ WantedBy=multi-user.target
 
 [X-Fleet]
 X-ConditionMachineMetadata=kubernetes_role=minion
-X-Conflicts=minion-kubelet@*.service
 X-ConditionMachineID=<ID>

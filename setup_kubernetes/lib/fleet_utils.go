@@ -125,6 +125,11 @@ func StartUnitsInDir(path string) {
 
 			if statusCode != 204 {
 				time.Sleep(1 * time.Second)
+				//log.Printf("curl -H \"Content-Type: application/json\" -X PUT -d %q localhost:10001/v1-alpha/units/%s", json_str, f.Name())
+				//body, err := ioutil.ReadAll(resp.Body)
+				//log.Printf("Status Code: %s", statusCode)
+				//log.Printf("[Error] in HTTP Body: %s - %v", body, err)
+				//checkForErrors(err)
 			}
 		}
 	}

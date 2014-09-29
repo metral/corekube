@@ -16,5 +16,4 @@ WantedBy=multi-user.target
 
 [X-Fleet]
 X-ConditionMachineMetadata=kubernetes_role=master
-X-Conflicts=master-scheduler@*.service
 X-ConditionMachineID=<ID>

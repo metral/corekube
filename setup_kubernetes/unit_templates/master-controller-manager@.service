@@ -17,5 +17,4 @@ WantedBy=multi-user.target
 
 [X-Fleet]
 X-ConditionMachineMetadata=kubernetes_role=master
-X-Conflicts=master-controller-manager@*.service
 X-ConditionMachineID=<ID>
