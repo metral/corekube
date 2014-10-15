@@ -201,10 +201,11 @@ Fleet Machine:
 
 Once the Heat template finishes instantiating the Heat template, the resources are booted & initiated, and we've [verified that the Overlord's setup\_kubernetes container ran & exited successfully](#overlord-tasks), we can begin using the [examples](https://github.com/GoogleCloudPlatform/kubernetes#where-to-go-next) available that showcase Kubernetes capabilities.
 
-A great first set of steps is to:
+A great set of steps is to start with:
 
-* Log into the Kubernetes Master node as root using your RAX SSH keypair
-* Change to the core user: ```$ su -l core```
+* Log into the Kubernetes Master node as the 'core' user using your RAX SSH keypair
+* Checkout the Kubernetes v0.3 release tag when cloning the repo to perform the examples, as it is the current supported version that
+  functions on Rackspace as described in their [information](https://github.com/GoogleCloudPlatform/kubernetes/releases)
 * Run the commands listed in the [Guestbook example](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/examples/guestbook/README.md)
 
 **Note:**
