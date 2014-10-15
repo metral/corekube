@@ -201,7 +201,7 @@ Fleet Machine:
 
 Once the Heat template finishes instantiating the Heat template, the resources are booted & initiated, and we've [verified that the Overlord's setup\_kubernetes container ran & exited successfully](#overlord-tasks), we can begin using the [examples](https://github.com/GoogleCloudPlatform/kubernetes#where-to-go-next) available that showcase Kubernetes capabilities.
 
-A great set of steps is to start with:
+Follow this set of steps to get you started:
 
 * Log into the Kubernetes Master node as the 'core' user using your RAX SSH keypair
 * Checkout the Kubernetes v0.3 release tag when cloning the repo to perform the examples, as it is the current supported version that
@@ -211,4 +211,7 @@ A great set of steps is to start with:
 **Note:**
 
 * For the commands listed, instead of using `$ cluster/kubecfg.sh`, use `$ /opt/bin/kubecfg`
+* You can assume that your Kubernetes cluster is operational if you've gotten
+  to this point, so disregard the setup cluster instructions in the Kubernetes
+  examples
 * After you complete the deployment of the guestbook, it could take a couple of minutes before the frontend nodes are accessible, so be patient.
