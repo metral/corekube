@@ -1,10 +1,12 @@
 ## Corekube
-Last Update: 09/29/2014
+Last Update: 10/29/2014
 
 ## TL;DR
 
-#### Version
-CoreOS version used: [457.0.0 - Alpha](https://coreos.com/releases/#457.0.0)
+#### Versions
+CoreOS version used: [v459.0.0 - Alpha](https://coreos.com/releases/#459.0.0)
+
+Kubernetes version used: [v0.4.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.4.2)
 
 #### Blog Post
 
@@ -204,8 +206,14 @@ Once the Heat template finishes instantiating the Heat template, the resources a
 Follow this set of steps to get you started:
 
 * Log into the Kubernetes Master node as the 'core' user using your RAX SSH keypair
-* Checkout the Kubernetes v0.3 release tag when cloning the repo to perform the examples, as it is the current supported version that
-  functions on Rackspace as described in their [information](https://github.com/GoogleCloudPlatform/kubernetes/releases)
+* Clone the Kubernetes repo which holds the examples: 
+
+    ```
+    git clone https://github.com/GoogleCloudPlatform/kubernetes
+    cd kubernetes
+    git checkout v0.3 -b v0.3
+    ```
+    * **Very Important**: Even though the binaries used are v0.4.2, you must checkout the Kubernetes v0.3 release tag to perform the examples. There are issues with the v0.4.2 examples on Rackspace, and currently v0.3 is the latest known & supported version.
 * Run the commands listed in the [Guestbook example](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/examples/guestbook/README.md)
 
 **Note:**
