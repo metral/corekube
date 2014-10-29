@@ -9,10 +9,10 @@ Documentation=https://github.com/GoogleCloudPlatform/kubernetes
 Requires=network-online.target
 
 [Service]
-ExecStart=/usr/bin/wget -N -P /opt/bin http://174307c3df69f6722373-d9b56c623324746288a6e1882cb7d5db.r7.cf5.rackcdn.com/apiserver
-ExecStart=/usr/bin/wget -N -P /opt/bin http://174307c3df69f6722373-d9b56c623324746288a6e1882cb7d5db.r7.cf5.rackcdn.com/controller-manager
-ExecStart=/usr/bin/wget -N -P /opt/bin http://174307c3df69f6722373-d9b56c623324746288a6e1882cb7d5db.r7.cf5.rackcdn.com/kubecfg
-ExecStart=/usr/bin/wget -N -P /opt/bin http://174307c3df69f6722373-d9b56c623324746288a6e1882cb7d5db.r7.cf5.rackcdn.com/scheduler
+ExecStart=/usr/bin/wget -N -P /opt/bin http://f700f59c75059549e099-4b97512b329698cff604197c970eaa5b.r59.cf5.rackcdn.com/apiserver
+ExecStart=/usr/bin/wget -N -P /opt/bin http://f700f59c75059549e099-4b97512b329698cff604197c970eaa5b.r59.cf5.rackcdn.com/controller-manager
+ExecStart=/usr/bin/wget -N -P /opt/bin http://f700f59c75059549e099-4b97512b329698cff604197c970eaa5b.r59.cf5.rackcdn.com/kubecfg
+ExecStart=/usr/bin/wget -N -P /opt/bin http://f700f59c75059549e099-4b97512b329698cff604197c970eaa5b.r59.cf5.rackcdn.com/scheduler
 ExecStart=/usr/bin/chmod +x /opt/bin/apiserver
 ExecStart=/usr/bin/chmod +x /opt/bin/controller-manager
 ExecStart=/usr/bin/chmod +x /opt/bin/scheduler
