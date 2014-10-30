@@ -136,9 +136,17 @@ The Overlord's tasks are best described in the following figure:
 <a name="overlord-tasks"></a>
 To view the Overlord's progress and status, log into the the "overlord" server and examine the Docker container, it operates: "setup\_kubernetes"
 
-**Note** Building the setup\_kubernetes container and running it can take
+```
+$ ssh root@<overlord_ip>
+```
+
+**Note**: Building the setup\_kubernetes container and running it can take
 several minutes, so refresh the following commands below until its output
 resembles yours.
+
+**Note**: There is a known [issue](https://github.com/metral/corekube/issues/3)
+that is making the overlord endlessly wait during the setup process. Read it & follow its temporary
+workaround until this bug is fixed.
 
 Review the Docker image pulled:
 
@@ -205,21 +213,24 @@ Once the Heat template finishes instantiating the Heat template, the resources a
 
 Follow this set of steps to get you started:
 
-* Log into the Kubernetes Master node as the 'core' user using your RAX SSH keypair
+* SSH into the Kubernetes Master node as the 'core' user using your RAX SSH keypair
+
+    ```
+    $ ssh core@<master_ip>
+    ```
+
 * Clone the Kubernetes repo which holds the examples: 
 
     ```
-    git clone https://github.com/GoogleCloudPlatform/kubernetes
-    cd kubernetes
-    git checkout v0.3 -b v0.3
+    $ git clone https://github.com/GoogleCloudPlatform/kubernetes
+    $ cd kubernetes
     ```
-    * **Very Important**: Even though the binaries used are v0.4.2, you must checkout the Kubernetes v0.3 release tag to perform the examples. There are issues with the v0.4.2 examples on Rackspace, and currently v0.3 is the latest known & supported version.
 * Run the commands listed in the [Guestbook example](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/examples/guestbook/README.md)
 
 **Note:**
 
 * For the commands listed, instead of using `$ cluster/kubecfg.sh`, use `$ /opt/bin/kubecfg`
 * You can assume that your Kubernetes cluster is operational if you've gotten
-  to this point, so disregard the setup cluster instructions in the Kubernetes
+  to this point, so disregard the setup cluster instructions (Step 0) in the Kubernetes
   examples
 * After you complete the deployment of the guestbook, it could take a couple of minutes before the frontend nodes are accessible, so be patient.
