@@ -1,12 +1,12 @@
 ## Corekube
-Last Update: 10/29/2014
+Last Update: 11/17/2014
 
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v459.0.0 - Alpha](https://coreos.com/releases/#459.0.0)
+CoreOS version used: [v490.0.0 - Alpha](https://coreos.com/releases/#490.0.0)
 
-Kubernetes version used: [v0.4.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.4.2)
+Kubernetes version used: [v0.4.3](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.4.3)
 
 #### Blog Post
 

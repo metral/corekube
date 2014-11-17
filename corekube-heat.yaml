@@ -39,8 +39,8 @@ parameters:
         selected to deploy into.
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Alpha (459.0.0) UUID
-    default: "325a1c78-78e1-4367-be7a-1334b088018a"
+    description: Rackspace Cloud Servers CoreOS Alpha (490.0.0) UUID
+    default: "3c7e97fa-a9f5-4b09-97aa-c94e66dbbfeb"
   git-repo:
     type: string
     description: Public git repo url
@@ -87,7 +87,8 @@ resources:
                 Requires=network-online.target
 
                 [Service]
-                ExecStart=/usr/bin/docker run -d --name discovery -p 4001:4001 -p 7001:7001 coreos/etcd
+                ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v0.4.6
+                ExecStart=/usr/bin/docker run -d --name discovery -p 4001:4001 -p 7001:7001 quay.io/coreos/etcd
 
   overlord:
     type: OS::Nova::Server
