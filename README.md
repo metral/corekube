@@ -4,7 +4,7 @@ Last Update: 11/17/2014
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v490.0.0 - Alpha](https://coreos.com/releases/#490.0.0)
+CoreOS version used: [v494.0.0 - Alpha](https://coreos.com/releases/#494.0.0)
 
 Kubernetes version used: [v0.4.3](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.4.3)
 
@@ -92,22 +92,21 @@ Since vxlan's function by encapsulating the MAC-based layer 2 ethernet frames wi
 * We get around the MAC filtering that the Cloud Network imposes, as vxlan traffic will still originate from the Cloud Network MAC address, and not the linux bridge used by Docker when a container creates the traffic
 * Communication paths for the entire group of all Kubernetes host machines & containers becomes automatically established because multicast allows all machines (hosts & containers) to not only send packets, but also, receive all packets sent on the overlay network; therefore, both Kubernetes host machines and containers can communicate with one another on their own subnet.
 
-Below is the proposed network architecture that is configured on the Kubernetes machines via cloud-config & systemd units:
+Below is the proposed network architecture that is configured on the Kubernetes machines using [CoreOS' Flannel](https://github.com/coreos/flannel) via cloud-config & systemd units:
 
-* Each Kubernetes machine will have an interface, named "eth2", on the 192.168.3.0/24 Cloud Network
-* We will then create a new bridge, named "cbr0" to differ from the default "docker0", with a network CIDR 10.244.0.0/15 where:
-    * Master nodes will have an address of 10.244.{master\_machine\_index}.1/24
-    * Minion nodes will have an address of 10.245.{minion\_machine\_index}.1/24
-* A vxlan network device is then created named "vxlan0" on multicast mode which operates on the eth2 device, hence, creating an overlay on top of eth2
-* We then add the new vxlan device, vxlan0, to the bridge, cbr0
-* Finally, we swap out the default Docker bridge, docker0, with cbr0 in the Docker daemon so that it all container networking is based off of this new bridge
+* Each Kubernetes machine will have an interface, named "eth2", on the isolated L2 192.168.3.0/24 Cloud Network
+* Flannel then creates a TUN/TAP device named "flannel.1" that overlays onto the eth2 device
+* Flannel also chooses a random subnet ID from the CIDR 10.244.0.0/15 that we've designated for the Flannel configuration and an MTU and assigns it to flannel.1
+    * i.e 10.244.94.0/15
+* Flannel then requests a subnet lease on 10.244.0.0/15 for the Docker bridge
+* We then update the Docker bridge interface's host CIDR by assigning it the new subnet chosen by Flannel (relevant to the overlay CIDR), and drop both the Docker bridge CIDR and flannel.1's MTU into /run/flannel/subnet.env so that we can make the Docker daemon aware of the new configuration
+    * i.e. $ cat /run/flannel/subnet.env 
+        * FLANNEL_SUBNET=10.244.94.1/24
+        * FLANNEL_MTU=1450
+* Docker is then restarted to take into account the new Docker bridge host CIDR & the flannel.1 MTU
+* The Docker bridge is now set to instantiate containers on the new CIDR and depends on the host routing table to route all overlay traffic on the 10.244.0.0/15 CIDR via flannel.1
 
 <p align="center"><img src="images/networking.png"></p>
-
-**Note**: Some aspects of the networking such as the subnet assignment being based
-off of the Heat machine index in the resource group are known hacks and are *not* meant to be used in production. Better subnet management, and potentially
-creating the appropriate network for the Docker containers that Kubernetes
-manages may be better suited with recently-released projects such as [Rudder](https://github.com/coreos/rudder) & [Weave](https://github.com/zettio/weave/). However, it is not in the near-term scope of Corekube to adopt one technology over the other.
 
 **Note**: If you have RackConnect enabled you will require rules like the ones
 below.  If you don't know what RackConnect is, you may safely ignore this.

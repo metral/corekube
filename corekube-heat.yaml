@@ -18,7 +18,7 @@ parameters:
     default: 3
     constraints:
     - range:
-        min: 2
+        min: 1
         max: 12
       description: Must be between 2 and 12 servers.
   key-name:
@@ -26,21 +26,18 @@ parameters:
     description: Name of key-pair to be used for compute instance
   flavor:
     type: string
-    default: 4 GB Performance
+    default: 4 GB General Purpose v1
     constraints:
     - allowed_values:
-      - 2 GB Performance
-      - 4 GB Performance
-      - 8 GB Performance
-      - 15 GB Performance
-      - 30 GB Performance
+      - 4 GB General Purpose v1
+      - 8 GB General Purpose v1
       description: |
         Must be a valid Rackspace Cloud Server flavor for the region you have
         selected to deploy into.
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Alpha (490.0.0) UUID
-    default: "3c7e97fa-a9f5-4b09-97aa-c94e66dbbfeb"
+    description: Rackspace Cloud Servers CoreOS Alpha (494.0.0) UUID
+    default: "1c423602-ea76-4263-b56b-0a2fa3e8c663"
   git-repo:
     type: string
     description: Public git repo url
@@ -138,7 +135,7 @@ resources:
                     [Install]
                     WantedBy=sockets.target
                 - name: fleet-local.service
-                  command: stop
+                  command: start
                   content: |
                     [Unit]
                     Description=fleet-local
@@ -214,61 +211,47 @@ resources:
                       command: start
                     - name: fleet.service
                       command: start
-                    - name: cbr0.netdev
+                    - name: flannel-install.service
                       command: start
                       content: |
-                        [NetDev]
-                        Kind=bridge
-                        Name=cbr0
-                    - name: cbr0.network
+                        [Unit]
+                        After=network-online.target
+                        Requires=network-online.target
+                        
+                        [Service]
+                        ExecStart=/usr/bin/wget -N -P /opt/bin http://d294c9b5fc599b0924ac-1f970f440462fc899216e927cd570e77.r51.cf1.rackcdn.com/flanneld
+                        ExecStart=/usr/bin/chmod +x /opt/bin/flanneld
+                        RemainAfterExit=yes
+                        Type=oneshot
+                    - name: flannel.service
                       command: start
                       content: |
-                        [Match]
-                        Name=cbr0
+                        [Unit]
+                        After=network-online.target etcd.service flannel-install.service
+                        Requires=network-online.target etcd.service flannel-install.service
 
-                        [Network]
-                        Address=10.244.%index%.1/24
-
-                        [Route]
-                        Destination=10.244.0.0/15
-                        Gateway=0.0.0.0
-                    - name: vxlan0.netdev
+                        [Service]
+                        ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "vxlan"}}'
+                        ExecStart=/opt/bin/flanneld -iface=eth2
+                    - name: flannel-env.path
                       command: start
                       content: |
-                        [NetDev]
-                        Kind=vxlan
-                        Name=vxlan0
-
-                        [VXLAN]
-                        Id=1
-                        Group=224.0.0.1
-                    - name: 49-eth2.network
-                      command: start
-                      content: |
-                        [Match]
-                        Name=eth2
-
-                        [Network]
-                        VXLAN=vxlan0
-                    - name: vxlan0.network
-                      command: start
-                      content: |
-                        [Match]
-                        Name=vxlan0
-
-                        [Network]
-                        Bridge=cbr0
+                        [Path]
+                        PathExists=/run/flannel/subnet.env
+                        Unit=docker.service
                     - name: docker.service
                       command: start
                       content: |
                         [Unit]
-                        After=network.target
+                        After=flannel-env.path network-online.target flannel.service
+                        Requires=flannel-env.path network-online.target flannel.service
                         Description=Docker Application Container Engine
-                        Documentation=http://docs.docker.io
 
                         [Service]
+                        EnvironmentFile=/run/flannel/subnet.env
                         ExecStartPre=/bin/mount --make-rprivate /
-                        ExecStart=/usr/bin/docker -d -s=btrfs -H fd:// -b cbr0
+                        ExecStartPre=/usr/bin/systemctl kill docker.service
+                        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU} -s=btrfs
 
                         [Install]
                         WantedBy=multi-user.target
@@ -318,61 +301,46 @@ resources:
                       command: start
                     - name: fleet.service
                       command: start
-                    - name: cbr0.netdev
+                    - name: flannel-install.service
                       command: start
                       content: |
-                        [NetDev]
-                        Kind=bridge
-                        Name=cbr0
-                    - name: cbr0.network
+                        [Unit]
+                        After=network-online.target
+                        Requires=network-online.target
+                        
+                        [Service]
+                        ExecStart=/usr/bin/wget -N -P /opt/bin http://d294c9b5fc599b0924ac-1f970f440462fc899216e927cd570e77.r51.cf1.rackcdn.com/flanneld
+                        ExecStart=/usr/bin/chmod +x /opt/bin/flanneld
+                        RemainAfterExit=yes
+                        Type=oneshot
+                    - name: flannel.service
                       command: start
                       content: |
-                        [Match]
-                        Name=cbr0
+                        [Unit]
+                        After=etcd.service flannel-install.service
+                        Requires=etcd.service flannel-install.service
 
-                        [Network]
-                        Address=10.245.%index%.1/24
-
-                        [Route]
-                        Destination=10.244.0.0/15
-                        Gateway=0.0.0.0
-                    - name: vxlan0.netdev
+                        [Service]
+                        ExecStart=/opt/bin/flanneld -iface=eth2
+                    - name: flannel-env.path
                       command: start
                       content: |
-                        [NetDev]
-                        Kind=vxlan
-                        Name=vxlan0
-
-                        [VXLAN]
-                        Id=1
-                        Group=224.0.0.1
-                    - name: 49-eth2.network
-                      command: start
-                      content: |
-                        [Match]
-                        Name=eth2
-
-                        [Network]
-                        VXLAN=vxlan0
-                    - name: vxlan0.network
-                      command: start
-                      content: |
-                        [Match]
-                        Name=vxlan0
-
-                        [Network]
-                        Bridge=cbr0
+                        [Path]
+                        PathExists=/run/flannel/subnet.env
+                        Unit=docker.service
                     - name: docker.service
                       command: start
                       content: |
                         [Unit]
-                        After=network.target
+                        After=flannel-env.path network-online.target flannel.service
+                        Requires=flannel-env.path network-online.target flannel.service
                         Description=Docker Application Container Engine
-                        Documentation=http://docs.docker.io
 
                         [Service]
+                        EnvironmentFile=/run/flannel/subnet.env
                         ExecStartPre=/bin/mount --make-rprivate /
-                        ExecStart=/usr/bin/docker -d -s=btrfs -H fd:// -b cbr0
+                        ExecStartPre=/usr/bin/systemctl kill docker.service
+                        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU} -s=btrfs
 
                         [Install]
                         WantedBy=multi-user.target
