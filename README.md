@@ -1,5 +1,5 @@
 ## Corekube
-Last Update: 11/17/2014
+Last Update: 11/20/2014
 
 ## TL;DR
 
