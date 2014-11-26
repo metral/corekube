@@ -7,10 +7,10 @@ Documentation=https://github.com/GoogleCloudPlatform/kubernetes
 Requires=network-online.target
 
 [Service]
-ExecStart=/usr/bin/wget -N -P /opt/bin http://375cb66d0f7876d2b4c4-7bdbb23ff00f9b9ad5be25e2cee8efe6.r90.cf1.rackcdn.com/kubelet
-ExecStart=/usr/bin/wget -N -P /opt/bin http://375cb66d0f7876d2b4c4-7bdbb23ff00f9b9ad5be25e2cee8efe6.r90.cf1.rackcdn.com/proxy
+ExecStart=/usr/bin/wget -N -P /opt/bin http://8f0dc7bedf5410c4681e-85f86a919c154c64582f551423bc4265.r65.cf1.rackcdn.com/kubelet
+ExecStart=/usr/bin/wget -N -P /opt/bin http://8f0dc7bedf5410c4681e-85f86a919c154c64582f551423bc4265.r65.cf1.rackcdn.com/kube-proxy
 ExecStart=/usr/bin/chmod +x /opt/bin/kubelet
-ExecStart=/usr/bin/chmod +x /opt/bin/proxy
+ExecStart=/usr/bin/chmod +x /opt/bin/kube-proxy
 RemainAfterExit=yes
 Type=oneshot
 

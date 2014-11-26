@@ -1,8 +1,8 @@
 #!/bin/bash
 
-EXPECTEDARGS=2
+EXPECTEDARGS=3
 if [ $# -lt $EXPECTEDARGS ]; then
-    echo "Usage: $0 <BRANCH> <NUMBER OF EXPECTED MACHINES>"
+    echo "Usage: $0 <BRANCH> <NUMBER OF MASTER MACHINES> <NUMBER OF MINION MACHINES>"
     exit 0
 fi
 

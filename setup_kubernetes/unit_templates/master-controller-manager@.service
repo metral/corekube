@@ -1,12 +1,12 @@
 [Unit]
-ConditionFileIsExecutable=/opt/bin/controller-manager
+ConditionFileIsExecutable=/opt/bin/kube-controller-manager
 Description=Kubernetes Controller Manager
 Documentation=https://github.com/GoogleCloudPlatform/kubernetes
 After=master-download-kubernetes@<ID>.service
 Requires=master-download-kubernetes@<ID>.service
 
 [Service]
-ExecStart=/opt/bin/controller-manager \
+ExecStart=/opt/bin/kube-controller-manager \
 --master=127.0.0.1:8080 \
 --logtostderr=true
 Restart=always

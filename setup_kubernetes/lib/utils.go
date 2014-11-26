@@ -72,14 +72,14 @@ func getFullAPIURL(port, etcdAPIPath string) string {
 }
 
 func WaitForFleetMachines(
-	fleetMachines *FleetMachines, expectedMachineCount int) {
+	fleetMachinesAbstract *FleetMachinesAbstract, expectedMachineCount int) {
 
 	// Issue request to get machines & parse it. Sleep if cluster not ready yet
 	url := getFullAPIURL("4001", "v2/keys/_coreos.com/fleet/machines")
 	jsonResponse := httpGetRequest(url)
-	err := json.Unmarshal(jsonResponse, fleetMachines)
+	err := json.Unmarshal(jsonResponse, fleetMachinesAbstract)
 	checkForErrors(err)
-	totalMachines := len(fleetMachines.Node.Nodes)
+	totalMachines := len(fleetMachinesAbstract.Node.Nodes)
 
 	for totalMachines < expectedMachineCount {
 		log.Printf("Waiting for all (%d) machines to be available "+
@@ -88,19 +88,19 @@ func WaitForFleetMachines(
 		time.Sleep(1 * time.Second)
 
 		jsonResponse := httpGetRequest(url)
-		err := json.Unmarshal(jsonResponse, fleetMachines)
+		err := json.Unmarshal(jsonResponse, fleetMachinesAbstract)
 		checkForErrors(err)
-		totalMachines = len(fleetMachines.Node.Nodes)
+		totalMachines = len(fleetMachinesAbstract.Node.Nodes)
 	}
 }
 
 func WaitForFleetMachineMetadata(
-	fleetMachinesNodeNodesValue *FleetMachinesNodeNodesValue,
-	fleetMachineObjectNodeValue *FleetMachineObjectNodeValue,
+	value *FleetMachinesNodeNodesValue,
+	fleetMachine *FleetMachine,
 	expectedMachineCount int) {
 
 	// Issue request to get machines & parse it. Sleep if cluster not ready yet
-	id := strings.Split(fleetMachinesNodeNodesValue.Key, "fleet/machines/")[1]
+	id := strings.Split(value.Key, "fleet/machines/")[1]
 	path := fmt.Sprintf("v2/keys/_coreos.com/fleet/machines/%s/object", id)
 
 	url := getFullAPIURL("4001", path)
@@ -111,25 +111,24 @@ func WaitForFleetMachineMetadata(
 	checkForErrors(err)
 
 	err = json.Unmarshal(
-		[]byte(fleetMachineObject.Node.Value), &fleetMachineObjectNodeValue)
+		[]byte(fleetMachineObject.Node.Value), &fleetMachine)
 	checkForErrors(err)
 
-	for len(fleetMachineObjectNodeValue.Metadata) == 0 ||
-		fleetMachineObjectNodeValue.Metadata["kubernetes_role"] == nil {
+	for len(fleetMachine.Metadata) == 0 ||
+		fleetMachine.Metadata["kubernetes_role"] == nil {
 		log.Printf("Waiting for machine (%s) metadata to be available "+
-			"in fleet...", fleetMachineObjectNodeValue.ID)
+			"in fleet...", fleetMachine.ID)
 		time.Sleep(1 * time.Second)
 
 		err = json.Unmarshal(
-			[]byte(fleetMachineObject.Node.Value), &fleetMachineObjectNodeValue)
+			[]byte(fleetMachineObject.Node.Value), &fleetMachine)
 		checkForErrors(err)
 
 	}
 }
 
 func createMasterUnits(
-	entity *FleetMachineObjectNodeValue,
-	minionIPAddrs string,
+	fleetMachine *FleetMachine,
 	unitPathInfo []map[string]string,
 ) {
 
@@ -145,12 +144,10 @@ func createMasterUnits(
 		fmt.Sprintf("/templates/%s", files["api"]))
 	checkForErrors(err)
 	apiserver := string(readfile)
-	apiserver = strings.Replace(apiserver, "<ID>", entity.ID, -1)
-	apiserver = strings.Replace(
-		apiserver, "<MINION_IP_ADDRS>", minionIPAddrs, -1)
+	apiserver = strings.Replace(apiserver, "<ID>", fleetMachine.ID, -1)
 
 	// Write apiserver service file
-	filename := strings.Replace(files["api"], "@", "@"+entity.ID, -1)
+	filename := strings.Replace(files["api"], "@", "@"+fleetMachine.ID, -1)
 	apiserver_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(apiserver_file, []byte(apiserver), 0644)
 	checkForErrors(err)
@@ -160,10 +157,10 @@ func createMasterUnits(
 		fmt.Sprintf("/templates/%s", files["controller"]))
 	checkForErrors(err)
 	controller := string(readfile)
-	controller = strings.Replace(controller, "<ID>", entity.ID, -1)
+	controller = strings.Replace(controller, "<ID>", fleetMachine.ID, -1)
 
 	// Write controller service file
-	filename = strings.Replace(files["controller"], "@", "@"+entity.ID, -1)
+	filename = strings.Replace(files["controller"], "@", "@"+fleetMachine.ID, -1)
 	controller_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(controller_file, []byte(controller), 0644)
 	checkForErrors(err)
@@ -173,10 +170,10 @@ func createMasterUnits(
 		fmt.Sprintf("/templates/%s", files["scheduler"]))
 	checkForErrors(err)
 	scheduler := string(readfile)
-	scheduler = strings.Replace(scheduler, "<ID>", entity.ID, -1)
+	scheduler = strings.Replace(scheduler, "<ID>", fleetMachine.ID, -1)
 
 	// Write scheduler service file
-	filename = strings.Replace(files["scheduler"], "@", "@"+entity.ID, -1)
+	filename = strings.Replace(files["scheduler"], "@", "@"+fleetMachine.ID, -1)
 	scheduler_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(scheduler_file, []byte(scheduler), 0644)
 	checkForErrors(err)
@@ -186,17 +183,17 @@ func createMasterUnits(
 		fmt.Sprintf("/templates/%s", files["download"]))
 	checkForErrors(err)
 	download := string(readfile)
-	download = strings.Replace(download, "<ID>", entity.ID, -1)
+	download = strings.Replace(download, "<ID>", fleetMachine.ID, -1)
 
 	// Write download service file
-	filename = strings.Replace(files["download"], "@", "@"+entity.ID, -1)
+	filename = strings.Replace(files["download"], "@", "@"+fleetMachine.ID, -1)
 	download_file := fmt.Sprintf("%s/%s",
 		unitPathInfo[0]["path"], filename)
 	err = ioutil.WriteFile(download_file, []byte(download), 0644)
 	checkForErrors(err)
 }
 
-func createMinionUnits(entity *FleetMachineObjectNodeValue,
+func createMinionUnits(fleetMachine *FleetMachine,
 	unitPathInfo []map[string]string,
 ) {
 	files := map[string]string{
@@ -210,11 +207,11 @@ func createMinionUnits(entity *FleetMachineObjectNodeValue,
 		fmt.Sprintf("/templates/%s", files["kubelet"]))
 	checkForErrors(err)
 	kubelet := string(readfile)
-	kubelet = strings.Replace(kubelet, "<ID>", entity.ID, -1)
-	kubelet = strings.Replace(kubelet, "<IP_ADDR>", entity.PublicIP, -1)
+	kubelet = strings.Replace(kubelet, "<ID>", fleetMachine.ID, -1)
+	kubelet = strings.Replace(kubelet, "<IP_ADDR>", fleetMachine.PublicIP, -1)
 
 	// Write kubelet service file
-	filename := strings.Replace(files["kubelet"], "@", "@"+entity.ID, -1)
+	filename := strings.Replace(files["kubelet"], "@", "@"+fleetMachine.ID, -1)
 	kubelet_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(kubelet_file, []byte(kubelet), 0644)
 	checkForErrors(err)
@@ -224,10 +221,10 @@ func createMinionUnits(entity *FleetMachineObjectNodeValue,
 		fmt.Sprintf("/templates/%s", files["proxy"]))
 	checkForErrors(err)
 	proxy := string(readfile)
-	proxy = strings.Replace(proxy, "<ID>", entity.ID, -1)
+	proxy = strings.Replace(proxy, "<ID>", fleetMachine.ID, -1)
 
 	// Write proxy service file
-	filename = strings.Replace(files["proxy"], "@", "@"+entity.ID, -1)
+	filename = strings.Replace(files["proxy"], "@", "@"+fleetMachine.ID, -1)
 	proxy_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
 	err = ioutil.WriteFile(proxy_file, []byte(proxy), 0644)
 	checkForErrors(err)
@@ -237,33 +234,47 @@ func createMinionUnits(entity *FleetMachineObjectNodeValue,
 		fmt.Sprintf("/templates/%s", files["download"]))
 	checkForErrors(err)
 	download := string(readfile)
-	download = strings.Replace(download, "<ID>", entity.ID, -1)
+	download = strings.Replace(download, "<ID>", fleetMachine.ID, -1)
 
 	// Write download service file
-	filename = strings.Replace(files["download"], "@", "@"+entity.ID, -1)
+	filename = strings.Replace(files["download"], "@", "@"+fleetMachine.ID, -1)
 	download_file := fmt.Sprintf("%s/%s",
 		unitPathInfo[0]["path"], filename)
 	err = ioutil.WriteFile(download_file, []byte(download), 0644)
 	checkForErrors(err)
 }
 
-func getMinionIPAddrs(
-	fleetMachineEntities *[]FleetMachineObjectNodeValue) string {
-	output := ""
+//func getMinionIPAddrs(
+//	fleetMachines *[]FleetMachine) string {
+//	output := ""
+//
+//	for _, fleetMachine := range *fleetMachines {
+//		switch fleetMachine.Metadata["kubernetes_role"] {
+//		case "minion":
+//			output += fleetMachine.PublicIP + ","
+//		}
+//	}
+//
+//	k := strings.LastIndex(output, ",")
+//	return output[:k]
+//}
 
-	for _, entity := range *fleetMachineEntities {
-		switch entity.Metadata["kubernetes_role"] {
-		case "minion":
-			output += entity.PublicIP + ","
+func FindInfoForRole(
+	role string,
+	fleetMachines *[]FleetMachine) []string {
+	var machines []string
+
+	for _, fleetMachine := range *fleetMachines {
+		if fleetMachine.Metadata["kubernetes_role"] == role {
+			machines = append(machines, fleetMachine.PublicIP)
 		}
 	}
 
-	k := strings.LastIndex(output, ",")
-	return output[:k]
+	return machines
 }
 
 func CreateUnitFiles(
-	fleetMachineEntities *[]FleetMachineObjectNodeValue,
+	fleetMachines *[]FleetMachine,
 	unitPathInfo []map[string]string,
 ) {
 
@@ -276,13 +287,12 @@ func CreateUnitFiles(
 		os.MkdirAll(v["path"], perm)
 	}
 
-	for _, entity := range *fleetMachineEntities {
-		switch entity.Metadata["kubernetes_role"] {
+	for _, fleetMachine := range *fleetMachines {
+		switch fleetMachine.Metadata["kubernetes_role"] {
 		case "master":
-			minionIPAddrs := getMinionIPAddrs(fleetMachineEntities)
-			createMasterUnits(&entity, minionIPAddrs, unitPathInfo)
+			createMasterUnits(&fleetMachine, unitPathInfo)
 		case "minion":
-			createMinionUnits(&entity, unitPathInfo)
+			createMinionUnits(&fleetMachine, unitPathInfo)
 		}
 	}
 	log.Printf("Created systemd unit files for kubernetes deployment")

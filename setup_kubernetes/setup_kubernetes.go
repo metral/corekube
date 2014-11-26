@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"setup_kubernetes/lib"
@@ -17,26 +18,26 @@ func main() {
 	}
 
 	// Get fleet machines & metadata
-	var fleetMachines lib.FleetMachines
-	lib.WaitForFleetMachines(&fleetMachines, expectedMachineCount)
+	var fleetMachinesAbstract lib.FleetMachinesAbstract
+	lib.WaitForFleetMachines(&fleetMachinesAbstract, expectedMachineCount)
 
-	var fleetMachineEntities []lib.FleetMachineObjectNodeValue
-	for _, fleetMachinesNodeNodesValue := range fleetMachines.Node.Nodes {
+	var fleetMachines []lib.FleetMachine
+	for _, value := range fleetMachinesAbstract.Node.Nodes {
 
 		// Get fleet metadata
-		var fleetMachineObjectNodeValue lib.FleetMachineObjectNodeValue
+		var fleetMachine lib.FleetMachine
 		lib.WaitForFleetMachineMetadata(
-			&fleetMachinesNodeNodesValue,
-			&fleetMachineObjectNodeValue,
+			&value,
+			&fleetMachine,
 			expectedMachineCount)
 
-		fleetMachineEntities = append(
-			fleetMachineEntities, fleetMachineObjectNodeValue)
+		fleetMachines = append(
+			fleetMachines, fleetMachine)
 		log.Printf(
 			"\nFleet Machine:\n-- ID: %s\n-- PublicIP: %s\n-- Metadata: %s\n\n",
-			fleetMachineObjectNodeValue.ID,
-			fleetMachineObjectNodeValue.PublicIP,
-			fleetMachineObjectNodeValue.Metadata.String(),
+			fleetMachine.ID,
+			fleetMachine.PublicIP,
+			fleetMachine.Metadata.String(),
 		)
 	}
 
@@ -52,9 +53,19 @@ func main() {
 		"path":        path + "/roles",
 		"activeState": "active", "subState": "running"})
 
-	lib.CreateUnitFiles(&fleetMachineEntities, unitPathInfo)
+	lib.CreateUnitFiles(&fleetMachines, unitPathInfo)
+
+	// Start & check state for download & role units
 	for _, v := range unitPathInfo {
 		lib.StartUnitsInDir(v["path"])
 		lib.CheckUnitsState(v["path"], v["activeState"], v["subState"])
+	}
+
+	// Register minions with master
+	masterIP := lib.FindInfoForRole("master", &fleetMachines)[0]
+	minionIPs := lib.FindInfoForRole("minion", &fleetMachines)
+	k8sAPI := fmt.Sprintf("http://%s:8080", masterIP)
+	for _, minionIP := range minionIPs {
+		lib.Register(k8sAPI, minionIP)
 	}
 }

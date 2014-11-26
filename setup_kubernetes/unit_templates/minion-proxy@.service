@@ -1,12 +1,12 @@
 [Unit]
-ConditionFileIsExecutable=/opt/bin/proxy
+ConditionFileIsExecutable=/opt/bin/kube-proxy
 Description=Kubernetes Proxy
 Documentation=https://github.com/GoogleCloudPlatform/kubernetes
 After=minion-download-kubernetes@<ID>.service
 Requires=minion-download-kubernetes@<ID>.service
 
 [Service]
-ExecStart=/opt/bin/proxy --etcd_servers=http://127.0.0.1:4001 --logtostderr=true
+ExecStart=/opt/bin/kube-proxy --etcd_servers=http://127.0.0.1:4001 --logtostderr=true
 Restart=always
 RestartSec=2
 

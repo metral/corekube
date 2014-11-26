@@ -1,12 +1,12 @@
 ## Corekube
-Last Update: 11/20/2014
+Last Update: 12/1/2014
 
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v494.0.0 - Alpha](https://coreos.com/releases/#494.0.0)
+CoreOS version used: [v505.1.0 - Alpha](https://coreos.com/releases/#505.1.0)
 
-Kubernetes version used: [v0.4.3](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.4.3)
+Kubernetes version used: [v0.5.4](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.5.4)
 
 #### Blog Post
 
@@ -212,23 +212,28 @@ Once the Heat template finishes instantiating the Heat template, the resources a
 
 Follow this set of steps to get you started:
 
-* SSH into the Kubernetes Master node as the 'core' user using your RAX SSH keypair
+* SSH into the Kubernetes Master node as the 'root' user using your RAX SSH keypair
 
     ```
-    $ ssh core@<master_ip>
+    $ ssh root@<master_ip>
     ```
 
-* Clone the Kubernetes repo which holds the examples: 
+* Run the [Guestbook example](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/examples/guestbook/README.md) offered by Kubernetes (of which has been compiled
+  into a shell script):
 
     ```
-    $ git clone https://github.com/GoogleCloudPlatform/kubernetes
-    $ cd kubernetes
+    $ curl -sKS -L https://raw.githubusercontent.com/metral/corekube/master/guestbook-example.sh | bash
     ```
-* Run the commands listed in the [Guestbook example](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/examples/guestbook/README.md)
+
+* Monitor the status of the guestbook deployment until all are in the "Running"
+  state:
+
+    ```
+    $ /opt/bin/kubectl get pods
+    ```
 
 **Note:**
 
-* For the commands listed, instead of using `$ cluster/kubecfg.sh`, use `$ /opt/bin/kubecfg`
 * You can assume that your Kubernetes cluster is operational if you've gotten
   to this point, so disregard the setup cluster instructions (Step 0) in the Kubernetes
   examples

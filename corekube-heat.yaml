@@ -36,8 +36,8 @@ parameters:
         selected to deploy into.
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Alpha (494.0.0) UUID
-    default: "1c423602-ea76-4263-b56b-0a2fa3e8c663"
+    description: Rackspace Cloud Servers CoreOS Alpha (505.1.0) UUID
+    default: "e550f66d-7a1f-4c99-bcc8-602ebc515faa"
   git-repo:
     type: string
     description: Public git repo url
@@ -233,6 +233,8 @@ resources:
                         [Service]
                         ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "vxlan"}}'
                         ExecStart=/opt/bin/flanneld -iface=eth2
+                        Restart=always
+                        RestartSec=5s
                     - name: flannel-env.path
                       command: start
                       content: |
@@ -322,6 +324,8 @@ resources:
 
                         [Service]
                         ExecStart=/opt/bin/flanneld -iface=eth2
+                        Restart=always
+                        RestartSec=5s
                     - name: flannel-env.path
                       command: start
                       content: |

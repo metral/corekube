@@ -14,7 +14,7 @@ import (
 
 type Map map[string]interface{}
 
-type FleetMachines struct {
+type FleetMachinesAbstract struct {
 	Action string
 	Node   FleetMachinesNode
 }
@@ -48,7 +48,7 @@ type FleetMachineObjectNode struct {
 	CreatedIndex  int
 }
 
-type FleetMachineObjectNodeValue struct {
+type FleetMachine struct {
 	ID             string
 	PublicIP       string
 	Metadata       Map
