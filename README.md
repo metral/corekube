@@ -143,10 +143,6 @@ $ ssh root@<overlord_ip>
 several minutes, so refresh the following commands below until its output
 resembles yours.
 
-**Note**: There is a known [issue](https://github.com/metral/corekube/issues/3)
-that is making the overlord endlessly wait during the setup process. Read it & follow its temporary
-workaround until this bug is fixed.
-
 Review the Docker image pulled:
 
 ```
