@@ -244,10 +244,9 @@ func Run(fleetResult *Result) {
 	master := FleetMachine{}
 	minions := FleetMachines{}
 
+	setMachineDeployed("")
 	getFleetMachines(fleetResult)
 	totalMachines := len(fleetResult.Node.Nodes)
-
-	setMachineDeployed("")
 
 	// Get Fleet machines
 	for {
