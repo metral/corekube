@@ -245,6 +245,7 @@ func Run(fleetResult *Result) {
 	minions := FleetMachines{}
 
 	setMachineDeployed("")
+	time.Sleep(1 * time.Second)
 	getFleetMachines(fleetResult)
 	totalMachines := len(fleetResult.Node.Nodes)
 
