@@ -150,7 +150,6 @@ resources:
                     WorkingDirectory=/root
                     Environment="DIR=corekube"
                     ExecStartPre=/usr/bin/rm -rf $DIR
-                    ExecStartPre=/usr/bin/curl -L http://localhost:4001/v2/keys/deployed -XPUT -d value="[]"
                     ExecStartPre=/usr/bin/git clone -b %branch% %repo%
                     ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch%
           params:
