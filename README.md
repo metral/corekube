@@ -4,7 +4,7 @@ Last Update: 12/11/2014
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v505.1.0 - Alpha](https://coreos.com/releases/#505.1.0)
+CoreOS version used: [v509.1.0 - Alpha](https://coreos.com/releases/#509.1.0)
 
 Kubernetes version used: [v0.5.4](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.5.4)
 
