@@ -241,8 +241,6 @@ func Run(fleetResult *Result) {
 	getFleetMachines(fleetResult)
 	totalMachines := len(fleetResult.Node.Nodes)
 
-	setMachineDeployed("")
-
 	// Get Fleet machines
 	for {
 		log.Printf("------------------------------------------------")
