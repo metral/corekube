@@ -75,22 +75,11 @@ func httpGetRequest(url string) []byte {
 	return body
 }
 
-func httpPutRequest(
-	urlStr string, data interface{}, isJSON bool) *http.Response {
+func httpPutRequest(urlStr string, data []byte) *http.Response {
 	var req *http.Request
 
-	switch isJSON {
-	case true:
-		var dataBytes = data.([]byte)
-		req, _ = http.NewRequest("PUT", urlStr, bytes.NewBuffer(dataBytes))
-		req.Header.Set("Content-Type", "application/json")
-	case false:
-		//var dataStr = data.(string)
-		dataStr := data.(string)
-		req, _ = http.NewRequest("PUT", urlStr, bytes.NewBufferString(dataStr))
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-		req.Header.Add("Content-Length", strconv.Itoa(len(dataStr)))
-	}
+	req, _ = http.NewRequest("PUT", urlStr, bytes.NewBuffer(data))
+	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -99,6 +88,30 @@ func httpPutRequest(
 	defer resp.Body.Close()
 
 	return resp
+}
+
+func httpPutRequestRedirect(urlStr string, data string) {
+	var req *http.Request
+	req, _ = http.NewRequest("PUT", urlStr, bytes.NewBufferString(data))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(data)))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	checkForErrors(err)
+
+	// if resp is TemporaryRedirect, set the new leader and retry
+	if resp.StatusCode == http.StatusTemporaryRedirect {
+		u, err := resp.Location()
+
+		if err != nil {
+			checkForErrors(err)
+		} else {
+			//client.cluster.updateLeaderFromURL(u)
+			httpPutRequestRedirect(u.String(), data)
+		}
+		resp.Body.Close()
+	}
 }
 
 func getFullAPIURL(port, etcdAPIPath string) string {
@@ -149,7 +162,7 @@ func machineDeployed(id string) bool {
 }
 
 func setMachineDeployed(id string) {
-	path := fmt.Sprintf("%s/keys/deployed", ETCD_API_VERSION)
+	path := fmt.Sprintf("%s/keys/deployed/", ETCD_API_VERSION)
 	urlStr := getFullAPIURL(ETCD_CLIENT_PORT, path)
 	data := ""
 
@@ -165,14 +178,7 @@ func setMachineDeployed(id string) {
 		data = fmt.Sprintf("value=%s", dataJSON)
 	}
 
-	resp := httpPutRequest(urlStr, data, false)
-	statusCode := resp.StatusCode
-
-	if statusCode != 200 {
-		time.Sleep(1 * time.Second)
-		setMachineDeployed(id)
-	}
-
+	httpPutRequestRedirect(urlStr, data)
 }
 func isK8sMachine(
 	fleetMachine, master *FleetMachine,
@@ -240,6 +246,8 @@ func Run(fleetResult *Result) {
 
 	getFleetMachines(fleetResult)
 	totalMachines := len(fleetResult.Node.Nodes)
+
+	setMachineDeployed("")
 
 	// Get Fleet machines
 	for {

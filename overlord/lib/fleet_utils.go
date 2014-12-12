@@ -306,7 +306,7 @@ func startUnitFile(unitFile string) {
 			filename,
 			options_str)
 
-		resp := httpPutRequest(url, []byte(json_str), true)
+		resp := httpPutRequest(url, []byte(json_str))
 		statusCode = resp.StatusCode
 
 		time.Sleep(1 * time.Second)
