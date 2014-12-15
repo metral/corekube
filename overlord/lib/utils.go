@@ -181,7 +181,8 @@ func setMachineDeployed(id string) {
 	httpPutRequestRedirect(urlStr, data)
 }
 func isK8sMachine(
-	fleetMachine, master *FleetMachine,
+	fleetMachine,
+	master *FleetMachine,
 	minions *FleetMachines) bool {
 
 	role := fleetMachine.Metadata["kubernetes_role"]

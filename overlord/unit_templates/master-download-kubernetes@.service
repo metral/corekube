@@ -4,10 +4,10 @@ Description=Download Kubernetes Binaries
 Requires=network-online.target
 
 [Service]
-ExecStart=/usr/bin/wget -N -P /opt/bin http://8f0dc7bedf5410c4681e-85f86a919c154c64582f551423bc4265.r65.cf1.rackcdn.com/kube-apiserver
-ExecStart=/usr/bin/wget -N -P /opt/bin http://8f0dc7bedf5410c4681e-85f86a919c154c64582f551423bc4265.r65.cf1.rackcdn.com/kube-controller-manager
-ExecStart=/usr/bin/wget -N -P /opt/bin http://8f0dc7bedf5410c4681e-85f86a919c154c64582f551423bc4265.r65.cf1.rackcdn.com/kubectl
-ExecStart=/usr/bin/wget -N -P /opt/bin http://8f0dc7bedf5410c4681e-85f86a919c154c64582f551423bc4265.r65.cf1.rackcdn.com/kube-scheduler
+ExecStart=/usr/bin/wget -N -P /opt/bin <URL>/kube-apiserver
+ExecStart=/usr/bin/wget -N -P /opt/bin <URL>/kube-controller-manager
+ExecStart=/usr/bin/wget -N -P /opt/bin <URL>/kubectl
+ExecStart=/usr/bin/wget -N -P /opt/bin <URL>/kube-scheduler
 ExecStart=/usr/bin/chmod +x /opt/bin/kube-apiserver
 ExecStart=/usr/bin/chmod +x /opt/bin/kube-controller-manager
 ExecStart=/usr/bin/chmod +x /opt/bin/kube-scheduler
