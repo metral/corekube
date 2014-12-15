@@ -1,10 +1,10 @@
 ## Corekube
-Last Update: 12/1/2014
+Last Update: 12/11/2014
 
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v505.1.0 - Alpha](https://coreos.com/releases/#505.1.0)
+CoreOS version used: [v509.1.0 - Alpha](https://coreos.com/releases/#509.1.0)
 
 Kubernetes version used: [v0.5.4](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.5.4)
 
@@ -149,7 +149,7 @@ Review the Docker image pulled:
 $ docker images
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
-setup_kubernetes    master              a3a95c2e3b1c        6 hours ago         604.9 MB
+overlord            master              a3a95c2e3b1c        6 hours ago         604.9 MB
 google/golang       stable              e0d9d5bb3d3d        5 days ago          559.6 MB
 ```
 
@@ -159,7 +159,7 @@ Review all Docker processes:
 $ docker ps -a
 
 CONTAINER ID        IMAGE                     COMMAND                CREATED      
-14678dc12d55        setup_kubernetes:master   /gopath/bin/setup_ku   6 hours ago 
+14678dc12d55        overlord:master           /gopath/bin/overlord   6 hours ago 
 ```
 
 Review the logs of the overlord's container:

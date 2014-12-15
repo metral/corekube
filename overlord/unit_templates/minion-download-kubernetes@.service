@@ -1,9 +1,6 @@
 [Unit]
 After=network-online.target
-Before=kubelet.service
-Before=proxy.service
 Description=Download Kubernetes Binaries
-Documentation=https://github.com/GoogleCloudPlatform/kubernetes
 Requires=network-online.target
 
 [Service]
@@ -15,5 +12,5 @@ RemainAfterExit=yes
 Type=oneshot
 
 [X-Fleet]
-X-ConditionMachineMetadata=kubernetes_role=minion
-X-ConditionMachineID=<ID>
+MachineMetadata=kubernetes_role=minion
+MachineID=<ID>

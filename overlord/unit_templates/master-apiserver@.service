@@ -1,7 +1,6 @@
 [Unit]
 ConditionFileIsExecutable=/opt/bin/kube-apiserver
 Description=Kubernetes API Server
-Documentation=https://github.com/GoogleCloudPlatform/kubernetes
 After=master-download-kubernetes@<ID>.service
 Requires=master-download-kubernetes@<ID>.service
 
@@ -19,5 +18,5 @@ RestartSec=2
 WantedBy=multi-user.target
 
 [X-Fleet]
-X-ConditionMachineMetadata=kubernetes_role=master
-X-ConditionMachineID=<ID>
+MachineMetadata=kubernetes_role=master
+MachineID=<ID>

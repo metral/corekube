@@ -10,17 +10,20 @@ import (
 	"net/http"
 )
 
-type Minion struct {
+var K8S_API_VERSION string = "v1beta1"
+var K8S_API_PORT string = "8080"
+
+type PreregisteredMinion struct {
 	Kind       string `json:"kind,omitempty"`
 	ID         string `json:"id,omitempty"`
 	HostIP     string `json:"hostIP,omitempty"`
 	APIVersion string `json:"apiVersion,omitempty"`
 }
 
-func Register(endpoint, addr string) error {
-	m := &Minion{
+func register(endpoint, addr string) error {
+	m := &PreregisteredMinion{
 		Kind:       "Minion",
-		APIVersion: "v1beta1",
+		APIVersion: K8S_API_VERSION,
 		ID:         addr,
 		HostIP:     addr,
 	}
@@ -28,14 +31,19 @@ func Register(endpoint, addr string) error {
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("%s/api/v1beta1/minions", endpoint)
+	url := fmt.Sprintf("%s/api/%s/minions", endpoint, K8S_API_VERSION)
 	res, err := http.Post(url, "application/json", bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
-	if res.StatusCode == 202 || res.StatusCode == 200 {
-		log.Printf("registered machine: %s\n", addr)
+	switch res.StatusCode {
+	case 200, 202:
+		log.Printf("------------------------------------------------")
+		log.Printf("Registered machine with the master: %s\n", addr)
+		return nil
+	case 409:
+		//log.Printf("Machine has already registered with master: %s\n", addr)
 		return nil
 	}
 	data, err = ioutil.ReadAll(res.Body)
