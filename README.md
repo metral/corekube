@@ -6,7 +6,7 @@ Last Update: 12/11/2014
 #### Versions
 CoreOS version used: [v509.1.0 - Alpha](https://coreos.com/releases/#509.1.0)
 
-Kubernetes version used: [v0.5.4](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.5.4)
+Kubernetes version used: [v0.6.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.6.2)
 
 #### Blog Post
 

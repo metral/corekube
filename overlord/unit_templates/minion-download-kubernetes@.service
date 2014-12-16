@@ -4,8 +4,8 @@ Description=Download Kubernetes Binaries
 Requires=network-online.target
 
 [Service]
-ExecStart=/usr/bin/wget -N -P /opt/bin http://acf30c85d655c6ebaaf4-8388a38b0ec489079a363aafaab7f3f0.r0.cf3.rackcdn.com/kubelet
-ExecStart=/usr/bin/wget -N -P /opt/bin http://acf30c85d655c6ebaaf4-8388a38b0ec489079a363aafaab7f3f0.r0.cf3.rackcdn.com/kube-proxy
+ExecStart=/usr/bin/wget -N -P /opt/bin <URL>/kubelet
+ExecStart=/usr/bin/wget -N -P /opt/bin <URL>/kube-proxy
 ExecStart=/usr/bin/chmod +x /opt/bin/kubelet
 ExecStart=/usr/bin/chmod +x /opt/bin/kube-proxy
 RemainAfterExit=yes

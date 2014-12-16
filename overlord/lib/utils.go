@@ -181,7 +181,8 @@ func setMachineDeployed(id string) {
 	httpPutRequestRedirect(urlStr, data)
 }
 func isK8sMachine(
-	fleetMachine, master *FleetMachine,
+	fleetMachine,
+	master *FleetMachine,
 	minions *FleetMachines) bool {
 
 	role := fleetMachine.Metadata["kubernetes_role"]
@@ -240,14 +241,16 @@ func registerMinions(master *FleetMachine, minions *FleetMachines) {
 	}
 }
 
-func Run(fleetResult *Result) {
+func Run() {
+	fleetResult := Result{}
+	var f *Result = &fleetResult
 	master := FleetMachine{}
 	minions := FleetMachines{}
 
 	setMachineDeployed("")
 	time.Sleep(1 * time.Second)
-	getFleetMachines(fleetResult)
-	totalMachines := len(fleetResult.Node.Nodes)
+	getFleetMachines(f)
+	totalMachines := len(f.Node.Nodes)
 
 	// Get Fleet machines
 	for {
@@ -256,7 +259,7 @@ func Run(fleetResult *Result) {
 
 		// Get Fleet machines metadata
 		var fleetMachine FleetMachine
-		for _, resultNode := range fleetResult.Node.Nodes {
+		for _, resultNode := range f.Node.Nodes {
 			WaitForMetadata(&resultNode, &fleetMachine)
 
 			if !machineDeployed(fleetMachine.ID) {
@@ -280,8 +283,8 @@ func Run(fleetResult *Result) {
 		registerMinions(&master, &minions)
 
 		time.Sleep(1 * time.Second)
-		getFleetMachines(fleetResult)
-		totalMachines = len(fleetResult.Node.Nodes)
+		getFleetMachines(f)
+		totalMachines = len(f.Node.Nodes)
 	}
 }
 

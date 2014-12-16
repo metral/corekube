@@ -71,6 +71,10 @@ type FleetUnitStates struct {
 	States []FleetUnitState
 }
 
+type Conf struct {
+	BinariesURL string `json:"binariesURL"`
+}
+
 func (f FleetMachine) PrintString() {
 	log.Printf("-- ID: %s\n", f.ID)
 	log.Printf("-- IP: %s\n", f.PublicIP)
@@ -171,6 +175,11 @@ func createMasterUnits(
 	download := string(readfile)
 	download = strings.Replace(download, "<ID>", fleetMachine.ID, -1)
 
+	file, _ := os.Open("/templates/conf.json")
+	conf := new(Conf)
+	json.NewDecoder(file).Decode(conf)
+	download = strings.Replace(download, "<URL>", conf.BinariesURL, -1)
+
 	// Write download service file
 	filename := strings.Replace(files["download"], "@", "@"+fleetMachine.ID, -1)
 	download_file := fmt.Sprintf("%s/%s",
@@ -241,6 +250,11 @@ func createMinionUnits(fleetMachine *FleetMachine,
 	checkForErrors(err)
 	download := string(readfile)
 	download = strings.Replace(download, "<ID>", fleetMachine.ID, -1)
+
+	file, _ := os.Open("/templates/conf.json")
+	conf := new(Conf)
+	json.NewDecoder(file).Decode(conf)
+	download = strings.Replace(download, "<URL>", conf.BinariesURL, -1)
 
 	// Write download service file
 	filename := strings.Replace(files["download"], "@", "@"+fleetMachine.ID, -1)

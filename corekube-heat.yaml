@@ -139,7 +139,7 @@ resources:
                     ExecStart=/usr/bin/fleet
                     Restart=always
                     RestartSec=10s
-                - name: setup-kubernetes.service
+                - name: overlord.service
                   command: start
                   content: |
                     [Unit]
