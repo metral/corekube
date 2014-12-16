@@ -1,5 +1,5 @@
 ## Corekube
-Last Update: 12/11/2014
+Last Update: 12/16/2014
 
 ## TL;DR
 
@@ -16,7 +16,7 @@ docs, etc.
 See [HACKING](https://github.com/metral/corekube/blob/master/HACKING.md) for
 more information.
 
-#### Blog Post
+#### Original Blog Post (Sept. 10, 2014) *Outdated*
 
 [Full Blog Post on Rackspace Developer Blog](https://developer.rackspace.com/blog/running-coreos-and-kubernetes/)
 
@@ -32,7 +32,7 @@ heat stack-create corekube --template-file corekube-heat.yaml -P key-name=<RAX_S
 ------------------
 
 ## Introduction
-Corekube is an adapation of CoreOS's [Running Kubernetes Example on CoreOS](https://coreos.com/blog/running-kubernetes-example-on-CoreOS-part-2/) blog post.
+Corekube is an adapation of CoreOS's [Running Kubernetes Example on CoreOS](https://coreos.com/blog/running-kubernetes-example-on-CoreOS-part-2/) blog post from July 2014.
 
 "Running Kubernetes Example on CoreOS" describes the installation of Kubernetes with VMWare, some manual network configuration & the deployment of the Kubernetes master & minion stacks via cloud-config.
 
@@ -54,25 +54,22 @@ following infastructure in an ordered fashion, with discovery & priv_network
 being built first, and then kubernetes-master-x, kubernetnes-minion-y and overlord
 afterwords.
 
-* "discovery" - CoreOS Cloud Server - Private etcd used for cluster discovery
-* "priv_network" - Cloud Network - Isolated layer 2 network used in an overlay
-  network to supply Kubernetes with its own subnet
+* "discovery" - CoreOS Cloud Server - Private etcd container used for cluster discovery
+* "priv_network" - Cloud Network - Isolated layer 2 network used to connect the Kubernetes nodes
 * "kubernetes-master-x" - CoreOS Cloud Server - Assumes the Kubernetes Master role
 * "kubernetes-minion-y" - CoreOS Cloud Server - Assumes the Kubernetes Minion role
-* "overlord" - CoreOS Cloud Server - Gathers cluster information & provisions Kubernetes roles onto the Kuberenetes-\* host machines
+* "overlord" - CoreOS Cloud Server - Gathers cluster information from the 'discovery' node & provisions Kubernetes roles onto the Kuberenetes-\* host machines
 
 **Discovery**
 
-The first step in Corekube's process, after server creation, is to instantiate a private discovery node using etcd, which is required for
-the cluster of overlord, kubernetes-master-x, and kubernetes-minion-y nodes.
+The first step in Corekube's process, after server instantiation, is to create a private discovery node using etcd in a Docker container. This private instance of etcd is used for service coordination/discovery and is eventually used by the Overlord to know what machines are in the cluster and then to deploy the kubernetes stacks onto the master and minion nodes.
 
-The discovery service is provided by the [coreos/etcd](https://registry.hub.docker.com/u/coreos/etcd/)
-Docker repo with a unique cluster UUID generated at creation via Heat.
+The discovery service is provided by the [coreos/etcd](https://quay.io/repository/coreos/etcd)
+Docker repo with a unique cluster UUID generated at creation via Heat. This is no different than CoreOS's [https://discovery.etcd.io](https://discovery.etcd.io) service as described in [CoreOS's Cluster Discovery](https://coreos.com/docs/cluster-management/setup/cluster-discovery/) post, other than the fact that it is private to this deployment.
 
-This discovery node's IP, combined with the cluster UUID, are used to assemble the complete discovery path needed by the etcd services (as well as the fleet service since it depends on etcd) for
-the rest of the infrastructure.
+This discovery node's IP, combined with the cluster UUID, are used to assemble the complete discovery path needed by the etcd & fleet client services running by default on the rest of the infrastructure, as these binaries come by default with CoreOS.
 
-Therefore, by the cluster nodes directly connecting to the discovery node, they have the information necessary to communicate with each other via fleetctl - the mechanism with which we deploy the Kubernetes role onto the designated machine.
+Therefore, when the rest of the cluster connects to the discovery path of our private discovery node, the Overlord will then have the information necessary to deploy the Kubernetes role stack onto the designated machine.
 
 <p align="center"><img src="images/discovery.png"></p>
 
@@ -129,16 +126,17 @@ below.  If you don't know what RackConnect is, you may safely ignore this.
 As you may have noticed in the "Cluster Discovery" figure above, there is an additional CoreOS server in addendum to the Kubernetes machines: the Overlord.
 
 The Overlord is a custom [Go](http://golang.org/) package that operates in a Docker container.
-After it's etcd service discovers the rest of the cluster via the private discovery service, it is tasked with the following responsibilities:
 
-* Using the local etcd API, wait for all expected machines in the cluster to show up in etcd & collect their relevant data
-* Using the local etcd API, wait for all expected machines in the cluster to have their fleet metadata be available & collect it
+After it joins the private discovery service, it is tasked with the following responsibilities in a daemon-like mode:
+
+* Using the local etcd client API, watch for machines in the cluster to join the private discovery service & collect their relevant information & metadata
 * Create systemd unit files for the Kubernetes master & minion machines from pre-existing templates
-    * These templates are populated with relevant information collected locally, such as the dependent machines & criteria a Kubernetes node needs to operate
-* Using the local fleet API, start the batch of templates that deal with downloading the Kubernetes master & minion binaries to the respective CoreOS host
-* Using the local fleet API, start the batch of templates that deal with instantiating & running the Kubernetes master & minion binaries on the respective CoreOS host
+    * These templates are populated with relevant information collected locally
+* Using the local fleet client API, start the batch of templates that deal with downloading the Kubernetes master/minion binaries to the respective CoreOS host
+* Using the local fleet client API, start the batch of templates that deal with instantiating & running the Kubernetes master/minion binaries on the respective CoreOS host
+* In the etcd datastore, mark the machine as being deployed. This aids with not redeploying a stack onto an already operational machine as it constantly watches for machines joining the private discovery node (new & old), as well as makes the Overlord partially tolerant. Specifically, if the Overlord were to crash/exit and assuming the private discovery service remains available, upon reinstation of the Overlord container, it will have a state of the machines already and use that to make deployment decisions.
 
-The Overlord's tasks are best described in the following figure:
+The Overlord's tasks are best described in the following figure with a daemon-like looping manner:
 
 <p align="center"><img src="images/flow.png"></p>
 
