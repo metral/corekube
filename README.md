@@ -67,7 +67,7 @@ The first step in Corekube's process, after server instantiation, is to create a
 The discovery service is provided by the [coreos/etcd](https://quay.io/repository/coreos/etcd)
 Docker repo with a unique cluster UUID generated at creation via Heat. This is no different than CoreOS's [https://discovery.etcd.io](https://discovery.etcd.io) service as described in [CoreOS's Cluster Discovery](https://coreos.com/docs/cluster-management/setup/cluster-discovery/) post, other than the fact that it is private to this deployment.
 
-This discovery node's IP, combined with the cluster UUID, are used to assemble the complete discovery path needed by the etcd & fleet client services running by default on the rest of the infrastructure, as these binaries come by default with CoreOS.
+This discovery node's IP, combined with the cluster UUID, are used to assemble the complete discovery path needed by the etcd & fleet client services running by default on the rest of the infrastructure, as these binaries come with CoreOS.
 
 Therefore, when the rest of the cluster connects to the discovery path of our private discovery node, the Overlord will then have the information necessary to deploy the Kubernetes role stack onto the designated machine.
 
@@ -75,31 +75,35 @@ Therefore, when the rest of the cluster connects to the discovery path of our pr
 
 **Networking**
 
-Once each machine has booted & connected their etcd service to the private discovery node (and fleet/fleetctl is ready to make use of this connection), a network architecture must be established to allow the containers that the Kuberentes nodes operate to communicate with one-another on their own subnet.
+Once each CoreOS machine has booted & connected their etcd client to the private discovery node, a network architecture must be established for the containers. Kubernetes requires that each master/minion node have their own subnet to be used for the containers it manages. We will therefore setup a CIDR in which all Kubernetes hosts will co-exist on, have their own subnet in said CIDR, and this network will be overlayed onto the Rackspace Cloud Network ("priv_network") that we created earlier for isolated communication.
 
-In order to understand the proposed networking architecture described below, we must first understand at a high-level how networking works with regards to Docker:
+In order to understand the proposed networking architecture described, we must first understand at a high-level how networking works with regards to Docker:
 
 * By default, Docker creates a virtual interface, specically a virtual Ethernet bridge (aka a linux bridge), named docker0 on the host machine
 * If docker0 does not have an address and subnet, which by default it does not, Docker randomly chooses an address and subnet from the private range defined by RFC 1918 that are not in use on the host machine, and assigns it to docker0.
 * Because docker0 is a linux bridge, it automatically forwards packets between any other network interfaces that are attached to it
-* So, every time Docker creates a container, it creates a pair of “peer” interfaces, specifically a virtual ethernet device (aka an veth device), that are like opposite ends of a pipe - this lets containers communicate both with the host machine and with each other
+* So, every time Docker creates a container, it creates a pair of “peer” interfaces, specifically a virtual ethernet device (aka a veth device) which operate like opposite ends of a pipe - this lets containers communicate both with the host machine and with each other.
 
 Now that we know how containers on Docker talk to other containers on the same host, we need to figure out how to allow containers on *different* hosts to have the same capability; specifically, when using a Rackspace Cloud Network, as it provides the servers an additional & isolated Layer 2 network.
 
-To allow the containers to communicate with each other via its Kubernetes host machine (which has an interface on the isolated layer 2 network), their must be some sort of networking mechanism to allow for it.
+To allow the containers to communicate with each other via its Kubernetes host machine (which has an interface on the isolated layer 2 network after we create it), there must be some sort of networking mechanism to allow for it.
 
-However, its worth noting that on a Rackspace Cloud Network, MAC filtering is performed; therefore, any traffic that originates on the docker0 linux bridge by the container will *not* be able to inherently communicate with the rest of the docker0 linux bridges in the rest of the cluster.
+However, its worth noting that on a Rackspace Cloud Network, MAC filtering is performed and cannot be disabled; therefore, any traffic that originates on the docker0 linux bridge by the container will *not* be able to inherently communicate with the rest of the docker0 linux bridges in the rest of the cluster.
 
 Fortunately, there is a solution that helps us in various ways: establish a multicast [vxlan overlay](http://en.wikipedia.org/wiki/Virtual_Extensible_LAN) on top of the Cloud Network.
 
-Since vxlan's function by encapsulating the MAC-based layer 2 ethernet frames within layer 4 UDP packets, and because we can create one to operate on multicast mode, we can accomplish a couple of goals:
+Since vxlan's function by encapsulating the MAC-based layer 2 ethernet frames within layer 4 UDP packets, and because we can create one to operate on multicast mode, we can accomplish a couple of key steps in terms of reaching our proposed network architecture:
 
 * We get around the MAC filtering that the Cloud Network imposes, as vxlan traffic will still originate from the Cloud Network MAC address, and not the linux bridge used by Docker when a container creates the traffic
-* Communication paths for the entire group of all Kubernetes host machines & containers becomes automatically established because multicast allows all machines (hosts & containers) to not only send packets, but also, receive all packets sent on the overlay network; therefore, both Kubernetes host machines and containers can communicate with one another on their own subnet.
+* Communication paths for the entire group of all Kubernetes host machines & containers becomes automatically established because multicast allows all machines (both hosts & containers) to not only send packets, but also, receive all packets sent on the overlay network; therefore, both Kubernetes host machines and containers can communicate with one another on their own subnet.
 
-Below is the proposed network architecture that is configured on the Kubernetes machines using [CoreOS' Flannel](https://github.com/coreos/flannel) via cloud-config & systemd units:
+Luckily, there are a few network fabric projects set to resolve this exact issue in the Docker ecosystem that we could use. The top options are: [Zettio's Weave](http://zettio.github.io/weave/) and [CoreOS' Flannel](https://github.com/coreos/flannel).
 
-* Each Kubernetes machine will have an interface, named "eth2", on the isolated L2 192.168.3.0/24 Cloud Network
+For our network architecture we chose Flannel.
+
+Below are the steps taken to create the proposed network architecture using Flannel. They configure the networking via cloud-config & systemd units:
+
+* Each Kubernetes machine will have an interface, named "eth2", on the isolated L2 192.168.3.0/24 Rackspace Cloud Network
 * Flannel then creates a TUN/TAP device named "flannel.1" that overlays onto the eth2 device
 * Flannel also chooses a random subnet ID from the CIDR 10.244.0.0/15 that we've designated for the Flannel configuration and an MTU and assigns it to flannel.1
     * i.e 10.244.94.0/15
@@ -175,39 +179,92 @@ Review the logs of the overlord's container:
 ```
 $ docker logs 14678dc12d55
 
-2014/09/09 03:36:45
-Fleet Machine:
--- ID: ca2ebc1eec234e6da36a2cb059517e89
--- PublicIP: 10.208.198.136
--- Metadata: (kubernetes_role => master)
+2014/12/15 20:12:20 ------------------------------------------------
+2014/12/15 20:12:20 Current # of machines discovered: (4)
+2014/12/15 20:12:20 ------------------------------------------------
+2014/12/15 20:12:20 Found machine:
+2014/12/15 20:12:20 -- ID: a43295d4ed574a45a6f91b86baea0093
+2014/12/15 20:12:20 -- IP: 10.209.35.141
+2014/12/15 20:12:20 -- Metadata: (kubernetes_role => master)
+2014/12/15 20:12:20 Created all unit files for: a43295d4ed574a45a6f91b86baea0093
+2014/12/15 20:12:20 Starting unit file: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:22 -- Waiting for the following unit file to complete: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:23 -- Waiting for the following unit file to complete: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:24 -- Waiting for the following unit file to complete: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:25 -- Waiting for the following unit file to complete: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:38 The following unit file has completed: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:38 Starting unit file: master-apiserver@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:40 -- Waiting for the following unit file to complete: master-apiserver@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:41 The following unit file has completed: master-apiserver@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:41 Starting unit file: master-controller-manager@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:43 -- Waiting for the following unit file to complete: master-controller-manager@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:44 The following unit file has completed: master-controller-manager@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:44 Starting unit file: master-scheduler@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:46 The following unit file has completed: master-scheduler@a43295d4ed574a45a6f91b86baea0093.service
+2014/12/15 20:12:46 ------------------------------------------------
+2014/12/15 20:12:46 Found machine:
+2014/12/15 20:12:46 -- ID: cacff367124f4021b5697de895934ca5
+2014/12/15 20:12:46 -- IP: 10.209.36.4
+2014/12/15 20:12:46 -- Metadata: (kubernetes_role => minion)
+2014/12/15 20:12:46 Created all unit files for: cacff367124f4021b5697de895934ca5
+2014/12/15 20:12:46 Starting unit file: minion-download-kubernetes@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:12:48 -- Waiting for the following unit file to complete: minion-download-kubernetes@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:12:49 -- Waiting for the following unit file to complete: minion-download-kubernetes@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:12:54 The following unit file has completed: minion-download-kubernetes@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:12:54 Starting unit file: minion-kubelet@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:12:56 -- Waiting for the following unit file to complete: minion-kubelet@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:12:57 -- Waiting for the following unit file to complete: minion-kubelet@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:12:58 The following unit file has completed: minion-kubelet@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:12:58 Starting unit file: minion-proxy@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:13:00 -- Waiting for the following unit file to complete: minion-proxy@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:13:01 The following unit file has completed: minion-proxy@cacff367124f4021b5697de895934ca5.service
+2014/12/15 20:13:02 ------------------------------------------------
+2014/12/15 20:13:02 Found machine:
+2014/12/15 20:13:02 -- ID: 28df6146a18f42b6a99162e082c0ae28
+2014/12/15 20:13:02 -- IP: 10.209.35.248
+2014/12/15 20:13:02 -- Metadata: (kubernetes_role => minion)
+2014/12/15 20:13:02 Created all unit files for: 28df6146a18f42b6a99162e082c0ae28
+2014/12/15 20:13:02 Starting unit file: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:04 -- Waiting for the following unit file to complete: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:05 -- Waiting for the following unit file to complete: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:06 -- Waiting for the following unit file to complete: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:10 The following unit file has completed: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:10 Starting unit file: minion-kubelet@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:12 -- Waiting for the following unit file to complete: minion-kubelet@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:13 The following unit file has completed: minion-kubelet@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:13 Starting unit file: minion-proxy@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:15 -- Waiting for the following unit file to complete: minion-proxy@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:16 The following unit file has completed: minion-proxy@28df6146a18f42b6a99162e082c0ae28.service
+2014/12/15 20:13:16 ------------------------------------------------
+2014/12/15 20:13:16 Found machine:
+2014/12/15 20:13:16 -- ID: e0e14b428b454a2fab7caff4b4f21b1a
+2014/12/15 20:13:16 -- IP: 10.209.35.240
+2014/12/15 20:13:16 -- Metadata: (kubernetes_role => minion)
+2014/12/15 20:13:16 Created all unit files for: e0e14b428b454a2fab7caff4b4f21b1a
+2014/12/15 20:13:16 Starting unit file: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:18 -- Waiting for the following unit file to complete: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:19 -- Waiting for the following unit file to complete: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:20 -- Waiting for the following unit file to complete: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:21 -- Waiting for the following unit file to complete: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:22 The following unit file has completed: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:22 Starting unit file: minion-kubelet@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:24 -- Waiting for the following unit file to complete: minion-kubelet@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:25 The following unit file has completed: minion-kubelet@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:25 Starting unit file: minion-proxy@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:28 The following unit file has completed: minion-proxy@e0e14b428b454a2fab7caff4b4f21b1a.service
+2014/12/15 20:13:28 ------------------------------------------------
+2014/12/15 20:13:28 Registered machine with the master: 10.209.36.4
+2014/12/15 20:13:28 ------------------------------------------------
+2014/12/15 20:13:28 Registered machine with the master: 10.209.35.248
+2014/12/15 20:13:29 ------------------------------------------------
+2014/12/15 20:13:29 Registered machine with the master: 10.209.35.240
+2014/12/15 20:13:30 ------------------------------------------------
+2014/12/15 20:13:30 Current # of machines discovered: (4)
+2014/12/15 20:13:31 ------------------------------------------------
+2014/12/15 20:13:31 Current # of machines discovered: (4)
+2014/12/15 20:13:32 ------------------------------------------------
+2014/12/15 20:13:32 Current # of machines discovered: (4)
 
-2014/09/09 03:36:45
-Fleet Machine:
--- ID: a2b84acbad074566ae21874d5e7fa58e
--- PublicIP: 10.208.200.28
--- Metadata: (kubernetes_role => minion)
-
-2014/09/09 03:36:45
-Fleet Machine:
--- ID: 78e09cc2d73549f982701658bacab491
--- PublicIP: 10.208.198.205
--- Metadata: (kubernetes_role => minion)
-
-2014/09/09 03:36:45
-Fleet Machine:
--- ID: 5cd010084c8b48158a4c579650080405
--- PublicIP: 10.208.199.254
--- Metadata: (kubernetes_role => minion)
-
-2014/09/09 03:36:45 Created systemd unit files for kubernetes deployment
-2014/09/09 03:36:45 Waiting for (4) services to be complete in fleet. Currently at: (0)
-2014/09/09 03:36:48 Waiting for (4) services to be complete in fleet. Currently at: (0)
-2014/09/09 03:36:49 Waiting for (4) services to be complete in fleet. Currently at: (2)
-2014/09/09 03:36:50 Waiting for (4) services to be complete in fleet. Currently at: (3)
-2014/09/09 03:36:57 Unit files in '/units/kubernetes_units/download' have completed
-2014/09/09 03:36:59 Waiting for (8) services to be complete in fleet. Currently at: (0)
-2014/09/09 03:37:02 Waiting for (8) services to be complete in fleet. Currently at: (4)
-2014/09/09 03:37:03 Unit files in '/units/kubernetes_units/roles' have completed
 ```
 
 ## Kubernetes Usage
