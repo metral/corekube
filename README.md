@@ -74,8 +74,8 @@ Once each machine has booted & connected their etcd service to the private disco
 
 In order to understand the proposed networking architecture described below, we must first understand at a high-level how networking works with regards to Docker:
 
-* By default, Docker creates a virtual interface, specically a virtual Ethernet bridge (aka a linux bridge), named docker0 on the host machine 
-* If docker0 does not have an address and subnet, which by default it does not, Docker randomly chooses an address and subnet from the private range defined by RFC 1918 that are not in use on the host machine, and assigns it to docker0. 
+* By default, Docker creates a virtual interface, specically a virtual Ethernet bridge (aka a linux bridge), named docker0 on the host machine
+* If docker0 does not have an address and subnet, which by default it does not, Docker randomly chooses an address and subnet from the private range defined by RFC 1918 that are not in use on the host machine, and assigns it to docker0.
 * Because docker0 is a linux bridge, it automatically forwards packets between any other network interfaces that are attached to it
 * So, every time Docker creates a container, it creates a pair of “peer” interfaces, specifically a virtual ethernet device (aka an veth device), that are like opposite ends of a pipe - this lets containers communicate both with the host machine and with each other
 
@@ -100,7 +100,7 @@ Below is the proposed network architecture that is configured on the Kubernetes 
     * i.e 10.244.94.0/15
 * Flannel then requests a subnet lease on 10.244.0.0/15 for the Docker bridge
 * We then update the Docker bridge interface's host CIDR by assigning it the new subnet chosen by Flannel (relevant to the overlay CIDR), and drop both the Docker bridge CIDR and flannel.1's MTU into /run/flannel/subnet.env so that we can make the Docker daemon aware of the new configuration
-    * i.e. $ cat /run/flannel/subnet.env 
+    * i.e. $ cat /run/flannel/subnet.env
         * FLANNEL_SUBNET=10.244.94.1/24
         * FLANNEL_MTU=1450
 * Docker is then restarted to take into account the new Docker bridge host CIDR & the flannel.1 MTU
@@ -108,17 +108,19 @@ Below is the proposed network architecture that is configured on the Kubernetes 
 
 <p align="center"><img src="images/networking.png"></p>
 
-**Note**: If you have RackConnect enabled you will require rules like the ones
+**Note**: If you have RackConnect v2 enabled you will require rules like the ones
 below.  If you don't know what RackConnect is, you may safely ignore this.
 
-* Dedicated -> Cloud Source=Network [192.168.3.0/24] Destination Type [All] Protocol [All] 
+* Dedicated -> Cloud Source=Network [192.168.3.0/24] Destination Type [All] Protocol [All]
 * Dedicated -> Cloud Source=Network [10.244.0.0/15] Destination Type [All] Protocol [All]
+
+**Note**: If you have RackConnect v3 enabled you must use the corekube-heat-rackconnectv3.yaml file and specify you RackConnect network id by setting the parameter rackconnect-network
 
 **Overlord**
 
 As you may have noticed in the "Cluster Discovery" figure above, there is an additional CoreOS server in addendum to the Kubernetes machines: the Overlord.
 
-The Overlord is a custom [Go](http://golang.org/) package that operates in a Docker container. 
+The Overlord is a custom [Go](http://golang.org/) package that operates in a Docker container.
 After it's etcd service discovers the rest of the cluster via the private discovery service, it is tasked with the following responsibilities:
 
 * Using the local etcd API, wait for all expected machines in the cluster to show up in etcd & collect their relevant data
@@ -158,8 +160,8 @@ Review all Docker processes:
 ```
 $ docker ps -a
 
-CONTAINER ID        IMAGE                     COMMAND                CREATED      
-14678dc12d55        overlord:master           /gopath/bin/overlord   6 hours ago 
+CONTAINER ID        IMAGE                     COMMAND                CREATED
+14678dc12d55        overlord:master           /gopath/bin/overlord   6 hours ago
 ```
 
 Review the logs of the overlord's container:

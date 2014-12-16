@@ -39,7 +39,7 @@ parameters:
         selected to deploy into.
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Alpha (505.1.0) UUID
+    description: Rackspace Cloud Servers CoreOS Alpha (509.1.0) UUID
     default: "a7fd10a0-cb13-400e-9fb8-a3d488f658c3"
   git-repo:
     type: string
@@ -104,24 +104,15 @@ resources:
           template: |
             #cloud-config
 
-            write_files:
-              - content: |
-                  StrictHostKeyChecking no
-                  UserKnownHostsFile /dev/null
-                  LogLevel QUIET
-                path: /root/.ssh/config
-                permissions: '0644'
             coreos:
               etcd:
                 name: overlord
                 discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
                 addr: $private_ipv4:4001
                 peer-addr: $private_ipv4:7001
-
               update:
                 group: alpha
                 reboot-strategy: off
-
               units:
                 - name: etcd.service
                   command: start
@@ -131,7 +122,7 @@ resources:
                     [Socket]
                     # Talk to the API over a Unix domain socket (default)
                     ListenStream=/var/run/fleet.sock
-                    # Talk to the API over an exposed port, uncomment to enable and choose a port
+                    # Talk to the API over an exposed port
                     ListenStream=10001
                     Service=fleet-local.service
 
@@ -151,7 +142,7 @@ resources:
                     ExecStart=/usr/bin/fleet
                     Restart=always
                     RestartSec=10s
-                - name: setup-kubernetes.service
+                - name: overlord.service
                   command: start
                   content: |
                     [Unit]
@@ -163,12 +154,10 @@ resources:
                     Environment="DIR=corekube"
                     ExecStartPre=/usr/bin/rm -rf $DIR
                     ExecStartPre=/usr/bin/git clone -b %branch% %repo%
-                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch% %master_count% %minion_count%
+                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch%
           params:
             "%discovery%": { get_attr: [discovery, first_address] }
             "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-            "%master_count%": { get_param: kubernetes-master-count }
-            "%minion_count%": { get_param: kubernetes-minion-count }
             "%repo%": { get_param: git-repo }
             "%branch%": { get_param: git-branch }
 
@@ -182,7 +171,7 @@ resources:
           key_name: { get_param: key-name }
           image: { get_param: coreos-image }
           flavor: { get_param: flavor }
-          name: bgo-master-%index%
+          name: kubernetes-master-%index%
           networks:
           - uuid: { get_param: rackconnect-network}
           - uuid: "11111111-1111-1111-1111-111111111111"
@@ -195,19 +184,16 @@ resources:
 
                 coreos:
                   etcd:
-                    name: bgo-master-%index%
+                    name: kubernetes-master-%index%
                     discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
                     addr: $private_ipv4:4001
                     peer-addr: $private_ipv4:7001
-
                   fleet:
                     public-ip: $private_ipv4
                     metadata: kubernetes_role=master
-
                   update:
                     group: alpha
                     reboot-strategy: off
-
                   units:
                     - name: etcd.service
                       command: start
@@ -273,7 +259,7 @@ resources:
           key_name: { get_param: key-name }
           image: { get_param: coreos-image }
           flavor: { get_param: flavor }
-          name: bgo-minion-%index%
+          name: kubernetes-minion-%index%
           networks:
           - uuid: { get_param: rackconnect-network}
           - uuid: "11111111-1111-1111-1111-111111111111"
@@ -290,15 +276,12 @@ resources:
                     discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
                     addr: $private_ipv4:4001
                     peer-addr: $private_ipv4:7001
-
                   fleet:
                     public-ip: $private_ipv4
                     metadata: kubernetes_role=minion
-
                   update:
                     group: alpha
                     reboot-strategy: off
-
                   units:
                     - name: etcd.service
                       command: start
