@@ -194,7 +194,8 @@ func createMasterUnits(
 	checkForErrors(err)
 	apiserver := string(readfile)
 	apiserver = strings.Replace(apiserver, "<ID>", fleetMachine.ID, -1)
-
+	apiserver = strings.Replace(apiserver, "<IP_ADDR>", fleetMachine.PublicIP, -1)
+	
 	// Write apiserver service file
 	filename = strings.Replace(files["api"], "@", "@"+fleetMachine.ID, -1)
 	apiserver_file := fmt.Sprintf("%s/%s", unitPathInfo[1]["path"], filename)
