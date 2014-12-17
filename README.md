@@ -9,7 +9,7 @@ CoreOS version used: [v509.1.0 - Alpha](https://coreos.com/releases/#509.1.0)
 Kubernetes version used: [v0.6.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.6.2)
 
 #### Contributing
-Please create all pull requests against the 'dev' branch. The
+Please create all pull requests against the 'master' branch. The
 'master' branch is reserved for working releases, complete with updated
 docs, etc.
 
