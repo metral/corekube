@@ -194,6 +194,7 @@ func createMasterUnits(
 	checkForErrors(err)
 	apiserver := string(readfile)
 	apiserver = strings.Replace(apiserver, "<ID>", fleetMachine.ID, -1)
+	apiserver = strings.Replace(apiserver, "<IP_ADDR>", fleetMachine.PublicIP, -1)
 
 	// Write apiserver service file
 	filename = strings.Replace(files["api"], "@", "@"+fleetMachine.ID, -1)
@@ -208,6 +209,7 @@ func createMasterUnits(
 	checkForErrors(err)
 	controller := string(readfile)
 	controller = strings.Replace(controller, "<ID>", fleetMachine.ID, -1)
+	controller = strings.Replace(controller, "<IP_ADDR>", fleetMachine.PublicIP, -1)
 
 	// Write controller service file
 	filename = strings.Replace(files["controller"], "@", "@"+fleetMachine.ID, -1)
@@ -222,6 +224,7 @@ func createMasterUnits(
 	checkForErrors(err)
 	scheduler := string(readfile)
 	scheduler = strings.Replace(scheduler, "<ID>", fleetMachine.ID, -1)
+	scheduler = strings.Replace(scheduler, "<IP_ADDR>", fleetMachine.PublicIP, -1)
 
 	// Write scheduler service file
 	filename = strings.Replace(files["scheduler"], "@", "@"+fleetMachine.ID, -1)
