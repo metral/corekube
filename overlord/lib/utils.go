@@ -67,51 +67,48 @@ func getFleetMachines(fleetResult *Result) {
 	removeOverlord(&fleetResult.Node.Nodes)
 }
 
-func getMachinesDeployed() []string {
-	var machinesDeployedResult NodeResult
+func getMachinesSeen() []string {
+	var machinesSeenResult NodeResult
 
-	path := fmt.Sprintf("%s/keys/deployed", ETCD_API_VERSION)
+	path := fmt.Sprintf("%s/keys/seen", ETCD_API_VERSION)
 	urlStr := getFullAPIURL(ETCD_CLIENT_PORT, path)
 
 	jsonResponse := goutils.HttpGetRequest(urlStr)
-	err := json.Unmarshal(jsonResponse, &machinesDeployedResult)
+	err := json.Unmarshal(jsonResponse, &machinesSeenResult)
 	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
-	var machinesDeployed []string
-	var machinesDeployedBytes []byte = []byte(machinesDeployedResult.Node.Value)
-	err = json.Unmarshal(machinesDeployedBytes, &machinesDeployed)
+	var machinesSeen []string
+	var machinesSeenBytes []byte = []byte(machinesSeenResult.Node.Value)
+	err = json.Unmarshal(machinesSeenBytes, &machinesSeen)
 	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
-	return machinesDeployed
+	return machinesSeen
 }
 
-func machineDeployed(id string) bool {
-	deployed := false
-	machineIDs := getMachinesDeployed()
+func machineSeen(allMachinesSeen []string, id string) bool {
+	seen := false
 
-	for _, machineID := range machineIDs {
-		if machineID == id {
-			deployed = true
+	for _, machineSeen := range allMachinesSeen {
+		if machineSeen == id {
+			seen = true
 		}
 	}
 
-	return deployed
+	return seen
 }
 
-func setMachineDeployed(id string) {
-	path := fmt.Sprintf("%s/keys/deployed/", ETCD_API_VERSION)
+func setMachinesSeen(machines []string) {
+	path := fmt.Sprintf("%s/keys/seen", ETCD_API_VERSION)
 	urlStr := getFullAPIURL(ETCD_CLIENT_PORT, path)
 	data := ""
 
-	switch id {
-	case "":
+	switch machines {
+	case nil:
 		emptySlice := []string{}
 		dataJSON, _ := json.Marshal(emptySlice)
 		data = fmt.Sprintf("value=%s", dataJSON)
 	default:
-		machinesDeployed := getMachinesDeployed()
-		machinesDeployed = append(machinesDeployed, id)
-		dataJSON, _ := json.Marshal(machinesDeployed)
+		dataJSON, _ := json.Marshal(machines)
 		data = fmt.Sprintf("value=%s", dataJSON)
 	}
 
@@ -184,13 +181,14 @@ func Run() {
 	master := FleetMachine{}
 	minions := FleetMachines{}
 
-	setMachineDeployed("")
+	setMachinesSeen([]string{})
 	time.Sleep(1 * time.Second)
-	getFleetMachines(f)
-	totalMachines := len(f.Node.Nodes)
 
 	// Get Fleet machines
 	for {
+		getFleetMachines(f)
+		allMachinesSeen := getMachinesSeen()
+		totalMachines := len(f.Node.Nodes)
 		log.Printf("------------------------------------------------")
 		log.Printf("Current # of machines discovered: (%d)\n", totalMachines)
 
@@ -199,29 +197,27 @@ func Run() {
 		for _, resultNode := range f.Node.Nodes {
 			WaitForMetadata(&resultNode, &fleetMachine)
 
-			if !machineDeployed(fleetMachine.ID) {
+			if !machineSeen(allMachinesSeen, fleetMachine.ID) {
 				log.Printf("------------------------------------------------")
 				log.Printf("Found machine:\n")
 				fleetMachine.PrintString()
 
 				if isK8sMachine(&fleetMachine, &master, &minions) {
-					createdFiles := createUnitFiles(&fleetMachine)
-					for _, file := range createdFiles {
-						if !unitFileCompleted(file) {
-							startUnitFile(file)
-							waitUnitFileComplete(file)
-						}
+					allMachinesSeen = append(allMachinesSeen, fleetMachine.ID)
+				}
+				createdFiles := createUnitFiles(&fleetMachine)
+				for _, file := range createdFiles {
+					if !unitFileCompleted(file) {
+						startUnitFile(file)
+						waitUnitFileComplete(file)
 					}
 				}
-				setMachineDeployed(fleetMachine.ID)
 			}
 		}
 
+		setMachinesSeen(allMachinesSeen)
 		registerMinions(&master, &minions)
-
 		time.Sleep(1 * time.Second)
-		getFleetMachines(f)
-		totalMachines = len(f.Node.Nodes)
 	}
 }
 
