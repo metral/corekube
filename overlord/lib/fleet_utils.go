@@ -19,36 +19,7 @@ var FLEET_API_PORT string = "10001"
 
 // Types Result, ResultNode, NodeResult & Node adapted from:
 // https://github.com/coreos/fleet/blob/master/etcd/result.go
-
 type Map map[string]interface{}
-
-type Result struct {
-	Action string
-	Node   ResultNode
-}
-
-type ResultNodes []ResultNode
-type ResultNode struct {
-	Key           string
-	Dir           bool
-	Nodes         ResultNodes
-	ModifiedIndex int
-	CreatedIndex  int
-}
-
-type NodeResult struct {
-	Action string
-	Node   Node
-}
-
-type Node struct {
-	Key           string
-	Value         string
-	Expiration    string
-	Ttl           int
-	ModifiedIndex int
-	CreatedIndex  int
-}
 
 type FleetMachines []FleetMachine
 type FleetMachine struct {
@@ -88,71 +59,6 @@ func (m Map) String() string {
 		output += fmt.Sprintf("(%s => %s) ", k, v)
 	}
 	return output
-}
-
-func lowerCasingOfUnitOptionsStr(json_str string) string {
-	json_str = strings.Replace(json_str, "Section", "section", -1)
-	json_str = strings.Replace(json_str, "Name", "name", -1)
-	json_str = strings.Replace(json_str, "Value", "value", -1)
-
-	return json_str
-}
-
-func getUnitPathInfo() []map[string]string {
-	templatePath := "/units/kubernetes_units"
-	unitPathInfo := []map[string]string{}
-
-	unitPathInfo = append(unitPathInfo,
-		map[string]string{
-			"path":     templatePath + "/download",
-			"subState": "exited",
-		},
-	)
-
-	unitPathInfo = append(unitPathInfo,
-		map[string]string{
-			"path":     templatePath + "/roles",
-			"subState": "running",
-		},
-	)
-
-	return unitPathInfo
-}
-
-func getSubStateByPath(path string) string {
-	unitPathInfo := getUnitPathInfo()
-
-	for _, v := range unitPathInfo {
-		if v["path"] == path {
-			return v["subState"]
-		}
-	}
-
-	return ""
-}
-
-func createUnitFiles(fleetMachine *FleetMachine) []string {
-	unitPathInfo := getUnitPathInfo()
-	createdFiles := []string{}
-
-	perm := os.FileMode(os.ModeDir)
-
-	for _, v := range unitPathInfo {
-		err := os.RemoveAll(v["path"])
-		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
-
-		os.MkdirAll(v["path"], perm)
-	}
-
-	switch fleetMachine.Metadata["kubernetes_role"] {
-	case "master":
-		createdFiles = createMasterUnits(fleetMachine, unitPathInfo)
-	case "minion":
-		createdFiles = createMinionUnits(fleetMachine, unitPathInfo)
-	}
-
-	log.Printf("Created all unit files for: %s\n", fleetMachine.ID)
-	return createdFiles
 }
 
 func createMasterUnits(
@@ -297,6 +203,90 @@ func createMinionUnits(fleetMachine *FleetMachine,
 	return createdFiles
 }
 
+func createUnitFiles(fleetMachine *FleetMachine) []string {
+	unitPathInfo := getUnitPathInfo()
+	createdFiles := []string{}
+
+	perm := os.FileMode(os.ModeDir)
+
+	for _, v := range unitPathInfo {
+		err := os.RemoveAll(v["path"])
+		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+
+		os.MkdirAll(v["path"], perm)
+	}
+
+	switch fleetMachine.Metadata["kubernetes_role"] {
+	case "master":
+		createdFiles = createMasterUnits(fleetMachine, unitPathInfo)
+	case "minion":
+		createdFiles = createMinionUnits(fleetMachine, unitPathInfo)
+	}
+
+	log.Printf("Created all unit files for: %s\n", fleetMachine.ID)
+	return createdFiles
+}
+
+func getSubStateByPath(path string) string {
+	unitPathInfo := getUnitPathInfo()
+
+	for _, v := range unitPathInfo {
+		if v["path"] == path {
+			return v["subState"]
+		}
+	}
+
+	return ""
+}
+
+func getUnitPathInfo() []map[string]string {
+	templatePath := "/units/kubernetes_units"
+	unitPathInfo := []map[string]string{}
+
+	unitPathInfo = append(unitPathInfo,
+		map[string]string{
+			"path":     templatePath + "/download",
+			"subState": "exited",
+		},
+	)
+
+	unitPathInfo = append(unitPathInfo,
+		map[string]string{
+			"path":     templatePath + "/roles",
+			"subState": "running",
+		},
+	)
+
+	return unitPathInfo
+}
+
+func getUnitState(unitFile string) FleetUnitState {
+	var fleetUnitStates FleetUnitStates
+	filename := filepath.Base(unitFile)
+
+	urlPath := fmt.Sprintf("%s/state", FLEET_API_VERSION)
+	url := getFullAPIURL(FLEET_API_PORT, urlPath)
+
+	jsonResponse := goutils.HttpGetRequest(url)
+	err := json.Unmarshal(jsonResponse, &fleetUnitStates)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+
+	for _, unitState := range fleetUnitStates.States {
+		if unitState.Name == filename {
+			return unitState
+		}
+	}
+	return FleetUnitState{}
+}
+
+func lowerCasingOfUnitOptionsStr(json_str string) string {
+	json_str = strings.Replace(json_str, "Section", "section", -1)
+	json_str = strings.Replace(json_str, "Name", "name", -1)
+	json_str = strings.Replace(json_str, "Value", "value", -1)
+
+	return json_str
+}
+
 func startUnitFile(unitFile string) {
 	filename := filepath.Base(unitFile)
 	unitFilepath := fmt.Sprintf(
@@ -321,7 +311,7 @@ func startUnitFile(unitFile string) {
 			filename,
 			options_str)
 
-		resp := goutils.HttpPutRequest(url, []byte(json_str))
+		resp := goutils.HttpCreateJSONRequest("PUT", url, []byte(json_str))
 		statusCode = resp.StatusCode
 
 		time.Sleep(1 * time.Second)
@@ -336,25 +326,6 @@ func startUnitFile(unitFile string) {
 			goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 		*/
 	}
-}
-
-func getUnitState(unitFile string) FleetUnitState {
-	var fleetUnitStates FleetUnitStates
-	filename := filepath.Base(unitFile)
-
-	urlPath := fmt.Sprintf("%s/state", FLEET_API_VERSION)
-	url := getFullAPIURL(FLEET_API_PORT, urlPath)
-
-	jsonResponse := goutils.HttpGetRequest(url)
-	err := json.Unmarshal(jsonResponse, &fleetUnitStates)
-	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
-
-	for _, unitState := range fleetUnitStates.States {
-		if unitState.Name == filename {
-			return unitState
-		}
-	}
-	return FleetUnitState{}
 }
 
 func unitFileCompleted(unitFile string) bool {
