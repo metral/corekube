@@ -334,3 +334,14 @@ resources:
               params:
                 "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
+
+outputs:
+  overlord_ip:
+    value: { get_attr: [ overlord, accessIPv4 ] }
+    description: The IP of the Overlord
+  master_ips:
+    value: { get_attr: [ master_machines, accessIPv4 ] }
+    description: The IP of the Kubernetes Master(s)
+  minion_ips:
+    value: { get_attr: [ minion_machines, accessIPv4 ] }
+    description: The IP of the Kubernetes Minions
