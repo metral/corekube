@@ -1,19 +1,16 @@
 package lib
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
-	"runtime"
-	"strconv"
 	"strings"
 	"time"
+
+	"github.com/metral/goutils"
 )
 
 var ETCD_API_VERSION string = "v2"
@@ -38,21 +35,11 @@ type Minion struct {
 	resources         map[interface{}]interface{}
 }
 
-// Check for errors and panic, if found
-func checkForErrors(err error) {
-	if err != nil {
-		pc, fn, line, _ := runtime.Caller(1)
-		msg := fmt.Sprintf("[Error] in %s[%s:%d] %v",
-			runtime.FuncForPC(pc).Name(), fn, line, err)
-		log.Fatal(msg)
-	}
-}
-
 // Get the IP address of the docker host as this is run from within container
 func getDockerHostIP() string {
 	cmd := fmt.Sprintf("netstat -nr | grep '^0\\.0\\.0\\.0' | awk '{print $2}'")
 	out, err := exec.Command("sh", "-c", cmd).Output()
-	checkForErrors(err)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	ip := string(out)
 	ip = strings.Replace(ip, "\n", "", -1)
@@ -64,56 +51,6 @@ func getEtcdAPI(host string, port string) string {
 	return fmt.Sprintf("http://%s:%s", host, port)
 }
 
-func httpGetRequest(url string) []byte {
-	resp, err := http.Get(url)
-	checkForErrors(err)
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	checkForErrors(err)
-
-	return body
-}
-
-func httpPutRequest(urlStr string, data []byte) *http.Response {
-	var req *http.Request
-
-	req, _ = http.NewRequest("PUT", urlStr, bytes.NewBuffer(data))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	checkForErrors(err)
-
-	defer resp.Body.Close()
-
-	return resp
-}
-
-func httpPutRequestRedirect(urlStr string, data string) {
-	var req *http.Request
-	req, _ = http.NewRequest("PUT", urlStr, bytes.NewBufferString(data))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(data)))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	checkForErrors(err)
-
-	// if resp is TemporaryRedirect, set the new leader and retry
-	if resp.StatusCode == http.StatusTemporaryRedirect {
-		u, err := resp.Location()
-
-		if err != nil {
-			checkForErrors(err)
-		} else {
-			//client.cluster.updateLeaderFromURL(u)
-			httpPutRequestRedirect(u.String(), data)
-		}
-		resp.Body.Close()
-	}
-}
-
 func getFullAPIURL(port, etcdAPIPath string) string {
 	etcdAPI := getEtcdAPI(getDockerHostIP(), port)
 	url := fmt.Sprintf("%s/%s", etcdAPI, etcdAPIPath)
@@ -123,9 +60,9 @@ func getFullAPIURL(port, etcdAPIPath string) string {
 func getFleetMachines(fleetResult *Result) {
 	path := fmt.Sprintf("%s/keys/_coreos.com/fleet/machines", ETCD_API_VERSION)
 	url := getFullAPIURL(ETCD_CLIENT_PORT, path)
-	jsonResponse := httpGetRequest(url)
+	jsonResponse := goutils.HttpGetRequest(url)
 	err := json.Unmarshal(jsonResponse, fleetResult)
-	checkForErrors(err)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	removeOverlord(&fleetResult.Node.Nodes)
 }
@@ -136,14 +73,14 @@ func getMachinesDeployed() []string {
 	path := fmt.Sprintf("%s/keys/deployed", ETCD_API_VERSION)
 	urlStr := getFullAPIURL(ETCD_CLIENT_PORT, path)
 
-	jsonResponse := httpGetRequest(urlStr)
+	jsonResponse := goutils.HttpGetRequest(urlStr)
 	err := json.Unmarshal(jsonResponse, &machinesDeployedResult)
-	checkForErrors(err)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	var machinesDeployed []string
 	var machinesDeployedBytes []byte = []byte(machinesDeployedResult.Node.Value)
 	err = json.Unmarshal(machinesDeployedBytes, &machinesDeployed)
-	checkForErrors(err)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	return machinesDeployed
 }
@@ -178,7 +115,7 @@ func setMachineDeployed(id string) {
 		data = fmt.Sprintf("value=%s", dataJSON)
 	}
 
-	httpPutRequestRedirect(urlStr, data)
+	goutils.HttpPutRequestRedirect(urlStr, data)
 }
 func isK8sMachine(
 	fleetMachine,
@@ -218,12 +155,12 @@ func registerMinions(master *FleetMachine, minions *FleetMachines) {
 	// Get registered minions, if any
 	endpoint := fmt.Sprintf("http://%s:%s", master.PublicIP, K8S_API_PORT)
 	masterAPIurl := fmt.Sprintf("%s/api/%s/minions", endpoint, K8S_API_VERSION)
-	jsonResponse := httpGetRequest(masterAPIurl)
+	jsonResponse := goutils.HttpGetRequest(masterAPIurl)
 	m := *minions
 
 	var minionsResult MinionsResult
 	err := json.Unmarshal(jsonResponse, &minionsResult)
-	checkForErrors(err)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	// See if minions discovered have been registered. If not, register
 	for _, minion := range m {
@@ -299,15 +236,15 @@ func WaitForMetadata(
 		"%s/keys/_coreos.com/fleet/machines/%s/object", ETCD_API_VERSION, id)
 
 	url := getFullAPIURL(ETCD_CLIENT_PORT, path)
-	jsonResponse := httpGetRequest(url)
+	jsonResponse := goutils.HttpGetRequest(url)
 
 	var nodeResult NodeResult
 	err := json.Unmarshal(jsonResponse, &nodeResult)
-	checkForErrors(err)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	err = json.Unmarshal(
 		[]byte(nodeResult.Node.Value), &fleetMachine)
-	checkForErrors(err)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	for len(fleetMachine.Metadata) == 0 ||
 		fleetMachine.Metadata["kubernetes_role"] == nil {
@@ -317,7 +254,7 @@ func WaitForMetadata(
 
 		err = json.Unmarshal(
 			[]byte(nodeResult.Node.Value), &fleetMachine)
-		checkForErrors(err)
+		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	}
 }
