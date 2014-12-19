@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"openstack/rax"
 	"time"
+	"travis/rax"
 )
 
 func getStackDetails() {
@@ -24,7 +24,6 @@ func deployStack() {
 func waitForStackResult(heatTimeout int) []string {
 	c1 := make(chan []string, 1)
 	go func() {
-		doStuff()
 		c1 <- []string{"1.2.3.4"}
 	}()
 
