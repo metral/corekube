@@ -15,10 +15,9 @@ func getStackDetails() {
 func deployStack() {
 	readfile, _ := ioutil.ReadFile("../corekube-heat.yaml")
 	template := string(readfile)
-	fmt.Printf("%q", template)
+	templateRaw := fmt.Sprintf("template: %q\n", template)
 
 	token := rax.IdentitySetup()
-	fmt.Printf("token: %s", token.ID)
 }
 
 func waitForStackResult(heatTimeout int) []string {
