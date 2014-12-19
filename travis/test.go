@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"openstack/rax"
 	"time"
 )
 
@@ -11,10 +12,13 @@ func getStackDetails() {
 
 }
 
-func doStuff() {
+func deployStack() {
 	readfile, _ := ioutil.ReadFile("../corekube-heat.yaml")
 	template := string(readfile)
 	fmt.Printf("%q", template)
+
+	token := rax.IdentitySetup()
+	fmt.Printf("token: %s", token.ID)
 }
 
 func waitForStackResult(heatTimeout int) []string {
@@ -38,10 +42,10 @@ func testMinionsRegistered(machines []string, k8sTimeout int) {
 }
 
 func main() {
-	heatTimeout := 10 // minutes
-	k8sTimeout := 1   // minutes
+	//heatTimeout := 10 // minutes
+	//k8sTimeout := 1   // minutes
 
-	//deployStack()
-	machines := waitForStackResult(heatTimeout)
-	testMinionsRegistered(machines, k8sTimeout)
+	deployStack()
+	//machines := waitForStackResult(heatTimeout)
+	//testMinionsRegistered(machines, k8sTimeout)
 }
