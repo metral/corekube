@@ -311,7 +311,17 @@ func startUnitFile(unitFile string) {
 			filename,
 			options_str)
 
-		resp := goutils.HttpCreateJSONRequest("PUT", url, []byte(json_str))
+		headers := map[string]string{
+			"Content-Type": "application/json",
+		}
+
+		h := HttpRequestParams{
+			HttpRequestType: "PUT",
+			Url:             url,
+			Data:            json_str,
+			Headers:         headers,
+		}
+		resp := goutils.HttpCreateRequest(h)
 		statusCode = resp.StatusCode
 
 		time.Sleep(1 * time.Second)
