@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -107,7 +108,18 @@ func setMachinesSeen(machines []string) {
 		data = fmt.Sprintf("value=%s", dataJSON)
 	}
 
-	goutils.HttpPutRequestRedirect(urlStr, data)
+	headers := map[string]string{
+		"Content-Type":   "application/x-www-form-urlencoded",
+		"Content-Length": strconv.Itoa(len(data)),
+	}
+
+	h := goutils.HttpRequestParams{
+		HttpRequestType: "PUT",
+		Url:             urlStr,
+		Data:            data,
+		Headers:         headers,
+	}
+	goutils.HttpCreateRequest(h)
 }
 
 func waitForMetadata(
