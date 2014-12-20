@@ -102,16 +102,16 @@ func register(endpoint, addr string) error {
 		"Content-Type": "application/json",
 	}
 
-	h := HttpRequestParams{
+	h := goutils.HttpRequestParams{
 		HttpRequestType: "POST",
 		Url:             url,
 		Data:            data,
 		Headers:         headers,
 	}
 	resp := goutils.HttpCreateRequest(h)
-	statusCode = resp.StatusCode
+	statusCode := resp.StatusCode
 
-	switch resp.StatusCode {
+	switch statusCode {
 	case 200, 202:
 		log.Printf("------------------------------------------------")
 		log.Printf("Registered machine with the master: %s\n", addr)

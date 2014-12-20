@@ -113,7 +113,7 @@ func setMachinesSeen(machines []string) {
 		"Content-Length": strconv.Itoa(len(data)),
 	}
 
-	h := HttpRequestParams{
+	h := goutils.HttpRequestParams{
 		HttpRequestType: "PUT",
 		Url:             urlStr,
 		Data:            data,

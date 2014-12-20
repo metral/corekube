@@ -315,7 +315,7 @@ func startUnitFile(unitFile string) {
 			"Content-Type": "application/json",
 		}
 
-		h := HttpRequestParams{
+		h := goutils.HttpRequestParams{
 			HttpRequestType: "PUT",
 			Url:             url,
 			Data:            json_str,
