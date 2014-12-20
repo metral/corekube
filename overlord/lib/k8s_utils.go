@@ -97,21 +97,9 @@ func register(endpoint, addr string) error {
 	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
 	url := fmt.Sprintf("%s/api/%s/minions", endpoint, K8S_API_VERSION)
+	resp := goutils.HttpCreateJSONRequest("POST", url, []byte(data))
 
-	headers := map[string]string{
-		"Content-Type": "application/json",
-	}
-
-	h := goutils.HttpRequestParams{
-		HttpRequestType: "POST",
-		Url:             url,
-		Data:            data,
-		Headers:         headers,
-	}
-	resp := goutils.HttpCreateRequest(h)
-	statusCode := resp.StatusCode
-
-	switch statusCode {
+	switch resp.StatusCode {
 	case 200, 202:
 		log.Printf("------------------------------------------------")
 		log.Printf("Registered machine with the master: %s\n", addr)
