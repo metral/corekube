@@ -151,7 +151,7 @@ resources:
                     Environment="DIR=corekube"
                     ExecStartPre=/usr/bin/rm -rf $DIR
                     ExecStartPre=/usr/bin/git clone -b %branch% %repo%
-                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh %branch%
+                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh
           params:
             "%discovery%": { get_attr: [discovery, networks, private, 0] }
             "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
