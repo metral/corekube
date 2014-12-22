@@ -116,4 +116,5 @@ func register(endpoint, addr string) error {
 	case 409:
 		return nil
 	}
+	return nil
 }
