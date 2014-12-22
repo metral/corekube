@@ -108,8 +108,7 @@ func register(endpoint, addr string) error {
 		Data:            data,
 		Headers:         headers,
 	}
-	resp := goutils.HttpCreateRequest(h)
-	statusCode := resp.StatusCode
+	statusCode := goutils.HttpCreateRequest(h)
 
 	switch statusCode {
 	case 200, 202:
