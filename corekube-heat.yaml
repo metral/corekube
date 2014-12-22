@@ -38,14 +38,10 @@ parameters:
     type: string
     description: Rackspace Cloud Servers CoreOS Alpha (509.1.0) UUID
     default: "a7fd10a0-cb13-400e-9fb8-a3d488f658c3"
-  git-repo:
+  git-command:
     type: string
-    description: Public git repo url
-    default: "https://github.com/metral/corekube.git"
-  git-branch:
-    type: string
-    description: Git repo branch
-    default: "master"
+    description: Git repo checkout command
+    default: "git clone -b master https://github.com/metral/corekube.git"
 
 resources:
 
@@ -150,13 +146,12 @@ resources:
                     WorkingDirectory=/root
                     Environment="DIR=corekube"
                     ExecStartPre=/usr/bin/rm -rf $DIR
-                    ExecStartPre=/usr/bin/git clone -b %branch% %repo%
+                    ExecStartPre=/usr/bin/%git-command%
                     ExecStart=/usr/bin/bash ${DIR}/build_run.sh
           params:
             "%discovery%": { get_attr: [discovery, networks, private, 0] }
             "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-            "%repo%": { get_param: git-repo }
-            "%branch%": { get_param: git-branch }
+            "%git-command%": { get_param: git-command }
 
   master_machines:
     type: "OS::Heat::ResourceGroup"
