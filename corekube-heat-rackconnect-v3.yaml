@@ -44,7 +44,7 @@ parameters:
   git-command:
     type: string
     description: Git repo checkout command
-    default: "git clone -b master https://github.com/metral/corekube.git"
+    default: "/usr/bin/git clone -b master https://github.com/metral/corekube.git"
 
 resources:
 
@@ -149,7 +149,7 @@ resources:
                     WorkingDirectory=/root
                     Environment="DIR=corekube"
                     ExecStartPre=/usr/bin/rm -rf $DIR
-                    ExecStartPre=/usr/bin/%git-command%
+                    ExecStartPre=%git-command%
                     ExecStart=/usr/bin/bash ${DIR}/build_run.sh
           params:
             "%discovery%": { get_attr: [discovery, first_address] }
