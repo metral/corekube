@@ -322,8 +322,7 @@ func startUnitFile(unitFile string) {
 			Data:            json_str,
 			Headers:         headers,
 		}
-		resp := goutils.HttpCreateRequest(h)
-		statusCode = resp.StatusCode
+		statusCode = goutils.HttpCreateRequest(h)
 
 		time.Sleep(1 * time.Second)
 		/*

@@ -2,9 +2,7 @@ package lib
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"time"
 
@@ -108,8 +106,7 @@ func register(endpoint, addr string) error {
 		Data:            data,
 		Headers:         headers,
 	}
-	resp := goutils.HttpCreateRequest(h)
-	statusCode := resp.StatusCode
+	statusCode := goutils.HttpCreateRequest(h)
 
 	switch statusCode {
 	case 200, 202:
@@ -117,11 +114,7 @@ func register(endpoint, addr string) error {
 		log.Printf("Registered machine with the master: %s\n", addr)
 		return nil
 	case 409:
-		//log.Printf("Machine has already registered with master: %s\n", addr)
 		return nil
 	}
-	data, err = ioutil.ReadAll(resp.Body)
-	log.Printf("Response: %#v", resp)
-	log.Printf("Response Body:\n%s", string(data))
-	return errors.New("error registering: " + addr)
+	return nil
 }
