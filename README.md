@@ -4,9 +4,9 @@ Last Update: 12/16/2014
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v509.1.0 - Alpha](https://coreos.com/releases/#509.1.0)
+CoreOS version used: [v522.0.0 - Alpha](https://coreos.com/releases/#522.0.0)
 
-Kubernetes version used: [v0.6.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.6.2)
+Kubernetes version used: [v0.7.1](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.7.1)
 
 #### Contributing
 Please create all pull requests against the 'master' branch. The
