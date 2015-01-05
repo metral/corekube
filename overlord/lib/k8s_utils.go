@@ -61,7 +61,17 @@ func registerMinions(master *FleetMachine, minions *FleetMachines) {
 	// Get registered minions, if any
 	endpoint := fmt.Sprintf("http://%s:%s", master.PublicIP, K8S_API_PORT)
 	masterAPIurl := fmt.Sprintf("%s/api/%s/minions", endpoint, K8S_API_VERSION)
-	jsonResponse := goutils.HttpGetRequest(masterAPIurl)
+
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "GET",
+		Url:             masterAPIurl,
+		Headers:         headers,
+	}
+
+	_, jsonResponse := goutils.HttpCreateRequest(p)
 	m := *minions
 
 	var minionsResult MinionsResult
@@ -100,13 +110,13 @@ func register(endpoint, addr string) error {
 		"Content-Type": "application/json",
 	}
 
-	h := goutils.HttpRequestParams{
+	p := goutils.HttpRequestParams{
 		HttpRequestType: "POST",
 		Url:             url,
 		Data:            data,
 		Headers:         headers,
 	}
-	statusCode, _ := goutils.HttpCreateRequest(h)
+	statusCode, _ := goutils.HttpCreateRequest(p)
 
 	switch statusCode {
 	case 200, 202:

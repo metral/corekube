@@ -267,7 +267,16 @@ func getUnitState(unitFile string) FleetUnitState {
 	urlPath := fmt.Sprintf("%s/state", FLEET_API_VERSION)
 	url := getFullAPIURL(FLEET_API_PORT, urlPath)
 
-	jsonResponse := goutils.HttpGetRequest(url)
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "GET",
+		Url:             url,
+		Headers:         headers,
+	}
+
+	_, jsonResponse := goutils.HttpCreateRequest(p)
 	err := json.Unmarshal(jsonResponse, &fleetUnitStates)
 	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
@@ -315,13 +324,13 @@ func startUnitFile(unitFile string) {
 			"Content-Type": "application/json",
 		}
 
-		h := goutils.HttpRequestParams{
+		p := goutils.HttpRequestParams{
 			HttpRequestType: "PUT",
 			Url:             url,
 			Data:            json_str,
 			Headers:         headers,
 		}
-		statusCode, _ = goutils.HttpCreateRequest(h)
+		statusCode, _ = goutils.HttpCreateRequest(p)
 
 		time.Sleep(1 * time.Second)
 		/*

@@ -50,7 +50,17 @@ func getEtcdAPI(host string, port string) string {
 func getFleetMachines(fleetResult *Result) {
 	path := fmt.Sprintf("%s/keys/_coreos.com/fleet/machines", ETCD_API_VERSION)
 	url := getFullAPIURL(ETCD_CLIENT_PORT, path)
-	jsonResponse := goutils.HttpGetRequest(url)
+
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "GET",
+		Url:             url,
+		Headers:         headers,
+	}
+
+	_, jsonResponse := goutils.HttpCreateRequest(p)
 	err := json.Unmarshal(jsonResponse, fleetResult)
 	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
@@ -69,7 +79,16 @@ func getMachinesSeen() []string {
 	path := fmt.Sprintf("%s/keys/seen", ETCD_API_VERSION)
 	urlStr := getFullAPIURL(ETCD_CLIENT_PORT, path)
 
-	jsonResponse := goutils.HttpGetRequest(urlStr)
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "GET",
+		Url:             urlStr,
+		Headers:         headers,
+	}
+
+	_, jsonResponse := goutils.HttpCreateRequest(p)
 	err := json.Unmarshal(jsonResponse, &machinesSeenResult)
 	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
 
@@ -113,13 +132,13 @@ func setMachinesSeen(machines []string) {
 		"Content-Length": strconv.Itoa(len(data)),
 	}
 
-	h := goutils.HttpRequestParams{
+	p := goutils.HttpRequestParams{
 		HttpRequestType: "PUT",
 		Url:             urlStr,
 		Data:            data,
 		Headers:         headers,
 	}
-	goutils.HttpCreateRequest(h)
+	goutils.HttpCreateRequest(p)
 }
 
 func waitForMetadata(
@@ -133,7 +152,18 @@ func waitForMetadata(
 		"%s/keys/_coreos.com/fleet/machines/%s/object", ETCD_API_VERSION, id)
 
 	url := getFullAPIURL(ETCD_CLIENT_PORT, path)
-	jsonResponse := goutils.HttpGetRequest(url)
+
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "GET",
+		Url:             url,
+		Headers:         headers,
+	}
+
+	_, jsonResponse := goutils.HttpCreateRequest(p)
 
 	var nodeResult NodeResult
 	err := json.Unmarshal(jsonResponse, &nodeResult)
