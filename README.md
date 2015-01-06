@@ -1,7 +1,7 @@
 ## Corekube
 Last Update: 01/06/2015
 
-Latest Release: [v0.3.3](https://github.com/metral/corekube/releases/latest)
+Latest Release: [v0.3.4](https://github.com/metral/corekube/releases/latest)
 
 ## TL;DR
 
