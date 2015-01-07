@@ -1,12 +1,12 @@
 ## Corekube
-Last Update: 01/06/2015
+##### Last Major Update: 01/06/2015
 
-Latest Release: [v0.3.4](https://github.com/metral/corekube/releases/latest)
+##### Latest Release: [v0.3.5](https://github.com/metral/corekube/releases/latest)
 
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v522.0.0 - Alpha](https://coreos.com/releases/#522.0.0)
+CoreOS version used: [v522.0.0 - Alpha](https://coreos.com/releases/#522.0.0) | docker: v1.3.2 | etcd: v0.4.6 | fleet: v0.8.3
 
 Kubernetes version used: [v0.7.1](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.7.1)
 
