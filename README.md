@@ -12,8 +12,7 @@ Kubernetes version used: [v0.7.1](https://github.com/GoogleCloudPlatform/kuberne
 
 #### Contributing
 Please create all pull requests against the 'master' branch. The
-'master' branch is reserved for working releases, complete with updated
-docs, etc.
+'master' branch is constantly being updated. For stable versions, please go off of the releases >= v0.3.5
 
 See [HACKING](https://github.com/metral/corekube/blob/master/HACKING.md) for
 more information.
