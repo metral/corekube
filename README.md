@@ -10,7 +10,7 @@ CoreOS version used: [v522.0.0 - Alpha](https://coreos.com/releases/#522.0.0) | 
 
 Kubernetes version used: [v0.7.1](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.7.1)
 
-## Quick Links
+#### Quick Links
 * [Overlord](https://github.com/metral/overlord)
 * [Goutils](https://github.com/metral/goutils)
 
