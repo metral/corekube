@@ -41,7 +41,7 @@ parameters:
   git-command:
     type: string
     description: Git repo checkout command
-    default: "/usr/bin/git clone -b master https://github.com/metral/corekube.git"
+    default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf c7a87aca064da5371ad38fe04d920a6a55044e33"
 
 resources:
 
@@ -144,7 +144,7 @@ resources:
 
                     [Service]
                     WorkingDirectory=/root
-                    Environment="DIR=corekube"
+                    Environment="DIR=overlord"
                     ExecStartPre=/usr/bin/rm -rf $DIR
                     ExecStartPre=%git-command%
                     ExecStart=/usr/bin/bash ${DIR}/build_run.sh
