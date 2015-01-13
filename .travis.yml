@@ -4,6 +4,6 @@ go:
  - 1.3
 
 install:
-    - ./build.sh
+    - ./build
 script:
-    - ./test.sh
+    - ./test
