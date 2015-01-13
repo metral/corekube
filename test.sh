@@ -1,3 +1,3 @@
 #!/bin/bash -e
 
-$GOPATH/bin/corekube-travis
+$HOME/bin/corekube-travis
