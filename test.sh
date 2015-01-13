@@ -1,3 +1,3 @@
 #!/bin/bash -e
 
-$HOME/bin/corekube-travis
+$HOME/gopath/bin/corekube-travis
