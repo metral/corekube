@@ -1,0 +1,11 @@
+language: go
+notifications:
+ email: false
+sudo: false
+go: 
+ - 1.3
+
+install:
+    - ./build.sh
+script:
+    - ./test.sh
