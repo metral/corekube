@@ -1,6 +1,4 @@
 language: go
-notifications:
- email: false
 sudo: false
 go: 
  - 1.3
