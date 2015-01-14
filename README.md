@@ -1,5 +1,5 @@
 ## Corekube
-<p align="center"><img src="https://travis-ci.org/metral/corekube.svg?branch=master"></p>
+<img src="https://travis-ci.org/metral/corekube.svg?branch=master"></p>
 
 ##### Last Major Update: 01/06/2015
 
