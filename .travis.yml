@@ -4,6 +4,6 @@ go:
  - 1.3
 
 install:
-    - ./build.sh
+    - ./travis/build.sh
 script:
-    - ./test.sh
+    - ./travis/test.sh
