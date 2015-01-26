@@ -1,16 +1,16 @@
 ## Corekube
 <img src="https://travis-ci.org/metral/corekube.svg?branch=master"></p>
 
-##### Last Major Update: 01/06/2015
+##### Last Major Update: 01/26/2015
 
-##### Latest Release: [v0.3.5](https://github.com/metral/corekube/releases/latest)
+##### Latest Release: [v0.3.6](https://github.com/metral/corekube/releases/tag/v0.3.6)
 
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v522.0.0 - Alpha](https://coreos.com/releases/#522.0.0) | docker: v1.3.2 | etcd: v0.4.6 | fleet: v0.8.3
+CoreOS version used: [v554.0.0 - Alpha](https://coreos.com/releases/#554.0.0) | docker: v1.4.1 | etcd: v0.4.6 | fleet: v0.9.0
 
-Kubernetes version used: [v0.7.1](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.7.1)
+Kubernetes version used: [v0.8.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.8.2)
 
 #### Quick Links
 * [Overlord](https://github.com/metral/overlord)
