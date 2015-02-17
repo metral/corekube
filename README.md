@@ -8,9 +8,9 @@
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v554.0.0 - Alpha](https://coreos.com/releases/#554.0.0) | docker: v1.4.1 | etcd: v0.4.6 | fleet: v0.9.0
+CoreOS version used: [v575.0.0 - Alpha](https://coreos.com/releases/#575.0.0) | docker: v1.4.1 | etcd: v0.4.6 | fleet: v0.9.0
 
-Kubernetes version used: [v0.8.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.8.2)
+Kubernetes version used: [v0.10.1](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.10.1)
 
 #### Quick Links
 * [Overlord](https://github.com/metral/overlord)
