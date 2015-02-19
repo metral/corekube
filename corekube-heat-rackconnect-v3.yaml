@@ -39,12 +39,12 @@ parameters:
         selected to deploy into.
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Alpha (522.0.0) UUID
-    default: "c0860034-df63-4876-b05c-2659f66edea6"
+    description: Rackspace Cloud Servers CoreOS Alpha (575.0.0) UUID
+    default: "c4499338-e54f-4a57-a99d-1d7495861ae9"
   git-command:
     type: string
     description: Git repo checkout command
-    default: "/usr/bin/git clone -b master https://github.com/metral/corekube.git"
+    default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 9b65cc762b039c7f864eeb19ac5ab87b15529bf1"
 
 resources:
 
@@ -147,7 +147,7 @@ resources:
 
                     [Service]
                     WorkingDirectory=/root
-                    Environment="DIR=corekube"
+                    Environment="DIR=overlord"
                     ExecStartPre=/usr/bin/rm -rf $DIR
                     ExecStartPre=%git-command%
                     ExecStart=/usr/bin/bash ${DIR}/build_run.sh
@@ -214,7 +214,7 @@ resources:
                         Requires=network-online.target etcd.service flannel-install.service
 
                         [Service]
-                        ExecStartPre=-/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "vxlan"}}'
+                        ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "vxlan"}}'
                         ExecStart=/opt/bin/flanneld -iface=eth1
                         Restart=always
                         RestartSec=5s
@@ -236,7 +236,8 @@ resources:
                         EnvironmentFile=/run/flannel/subnet.env
                         ExecStartPre=/bin/mount --make-rprivate /
                         ExecStartPre=/usr/bin/systemctl kill docker.service
-                        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU} -s=btrfs
+                        #ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU} -s=btrfs
+                        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
 
                         [Install]
                         WantedBy=multi-user.target
