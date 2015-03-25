@@ -12,6 +12,8 @@ CoreOS version used: [v618.0.0 - Alpha](https://coreos.com/releases/#618.0.0) | 
 
 Kubernetes version used: [v0.13.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.13.2)
 
+API versions used in [Overlord](https://github.com/metral/overlord): etcd: v2 | fleet: v1-alpha | kubernetes: v1beta1
+
 #### Quick Links
 * [Overlord](https://github.com/metral/overlord)
 * [Goutils](https://github.com/metral/goutils)
