@@ -36,12 +36,12 @@ parameters:
         selected to deploy into.
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Alpha (575.0.0) UUID
-    default: "c4499338-e54f-4a57-a99d-1d7495861ae9"
+    description: Rackspace Cloud Servers CoreOS Alpha (618.0.0) UUID
+    default: "3cea2c39-26d8-4971-a1b0-be436fa2dece"
   git-command:
     type: string
     description: Git repo checkout command
-    default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 9b65cc762b039c7f864eeb19ac5ab87b15529bf1"
+    default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 67023643c143e01f7c350f625a1de0311fde8ffa"
 
 resources:
 
