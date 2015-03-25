@@ -1,12 +1,12 @@
 #!/bin/bash
 
-VERSION=0.6.2
+VERSION=0.13.2
 
 git clone https://github.com/GoogleCloudPlatform/kubernetes
 pushd kubernetes
 git checkout -b v$VERSION tags/v$VERSION
 
-/opt/bin/kubectl create -f examples/guestbook/redis-master.json
+/opt/bin/kubectl create -f examples/guestbook/redis-master-controller.json
 /opt/bin/kubectl create -f examples/guestbook/redis-master-service.json
 /opt/bin/kubectl create -f examples/guestbook/redis-slave-controller.json
 /opt/bin/kubectl create -f examples/guestbook/redis-slave-service.json
