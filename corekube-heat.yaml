@@ -41,7 +41,11 @@ parameters:
   git-command:
     type: string
     description: Git repo checkout command
-    default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 67023643c143e01f7c350f625a1de0311fde8ffa"
+    default: "/usr/bin/git clone https://github.com/metral/overlord"
+  flannel-url:
+    type: string
+    description: Flannel Binary URL
+    default: "http://7bf6c2d3bf0e8b8fced5-2baf44983b7962278e524adc5d3c2251.r41.cf1.rackcdn.com/flanneld"
 
 resources:
 
@@ -200,7 +204,7 @@ resources:
                         Requires=network-online.target
 
                         [Service]
-                        ExecStart=/usr/bin/wget -N -P /opt/bin http://d294c9b5fc599b0924ac-1f970f440462fc899216e927cd570e77.r51.cf1.rackcdn.com/flanneld
+                        ExecStart=/usr/bin/wget -N -P /opt/bin %flannel-url%
                         ExecStart=/usr/bin/chmod +x /opt/bin/flanneld
                         RemainAfterExit=yes
                         Type=oneshot
@@ -234,7 +238,6 @@ resources:
                         EnvironmentFile=/run/flannel/subnet.env
                         ExecStartPre=/bin/mount --make-rprivate /
                         ExecStartPre=/usr/bin/systemctl kill docker.service
-                        #ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU} -s=btrfs
                         ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
 
                         [Install]
@@ -242,6 +245,7 @@ resources:
               params:
                 "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
+                "%flannel-url%": { get_param: flannel-url }
 
   minion_machines:
     type: "OS::Heat::ResourceGroup"
@@ -290,7 +294,7 @@ resources:
                         Requires=network-online.target
 
                         [Service]
-                        ExecStart=/usr/bin/wget -N -P /opt/bin http://d294c9b5fc599b0924ac-1f970f440462fc899216e927cd570e77.r51.cf1.rackcdn.com/flanneld
+                        ExecStart=/usr/bin/wget -N -P /opt/bin %flannel-url%
                         ExecStart=/usr/bin/chmod +x /opt/bin/flanneld
                         RemainAfterExit=yes
                         Type=oneshot
@@ -323,13 +327,14 @@ resources:
                         EnvironmentFile=/run/flannel/subnet.env
                         ExecStartPre=/bin/mount --make-rprivate /
                         ExecStartPre=/usr/bin/systemctl kill docker.service
-                        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU} -s=btrfs
+                        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
 
                         [Install]
                         WantedBy=multi-user.target
               params:
                 "%discovery%": { get_attr: [discovery, networks, private, 0] }
                 "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
+                "%flannel-url%": { get_param: flannel-url }
 
 outputs:
   overlord_ip:

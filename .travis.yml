@@ -3,6 +3,11 @@ sudo: false
 go: 
  - 1.4
 
+branches:
+  only:
+    - master
+    - dev
+
 install:
     - ./travis/build.sh
 script:
