@@ -71,12 +71,29 @@ resources:
       user_data: |
         #cloud-config
 
+        write_files:
+          - path: /root/setup_env.sh
+            permissions: '0755'
+            owner: root
+            content: |
+              #!/bin/bash
+              /usr/bin/ip -4 addr show eth1 | /usr/bin/awk '/inet/ {print $2}' | /usr/bin/cut -d/ -f1 > /root/IP
+              /usr/bin/sed -i 's/^/IP=/' /root/IP
         coreos:
           update:
             group: alpha
             reboot-strategy: off
 
           units:
+            - name: private-discovery-setup.service
+              command: start
+              content: |
+                [Unit]
+                After=network-online.target
+                Requires=network-online.target
+
+                [Service]
+                ExecStart=/usr/bin/bash /root/setup_env.sh
             - name: private-discovery.service
               command: start
               content: |
@@ -85,8 +102,9 @@ resources:
                 Requires=network-online.target
 
                 [Service]
-                ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v0.4.6
-                ExecStart=/usr/bin/docker run -d --name discovery -p 4001:4001 -p 7001:7001 quay.io/coreos/etcd
+                EnvironmentFile=/root/IP
+                ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v2.0.9
+                ExecStart=/usr/bin/docker run -d --name discovery -p 2379:2379 -p 2380:2380 -v /usr/share/ca-certificates/:/etc/ssl/certs --net host quay.io/coreos/etcd:v2.0.9 -name discovery -initial-advertise-peer-urls http://${IP}:2380,http://${IP}:7001 -listen-peer-urls http://${IP}:2380,http://${IP}:7001 -initial-cluster discovery=http://${IP}:2380,discovery=http://${IP}:7001 -advertise-client-urls http://${IP}:2379,http://${IP}:4001 -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001
 
   overlord:
     type: OS::Nova::Server
@@ -105,7 +123,7 @@ resources:
             coreos:
               etcd:
                 name: overlord
-                discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
+                discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                 addr: $private_ipv4:4001
                 peer-addr: $private_ipv4:7001
               update:
@@ -181,10 +199,18 @@ resources:
               template: |
                 #cloud-config
 
+                write_files:
+                  - path: /root/setup_env.sh
+                    permissions: '0755'
+                    owner: root
+                    content: |
+                      #!/bin/bash
+                      /usr/bin/cat /run/systemd/system/etcd.service.d/20-cloudinit.conf | /usr/bin/grep -i discovery | /usr/bin/cut -f3 -d"=" | /usr/bin/awk -F '/v' '{print $1}' > /root/etcd_servers
+                      /usr/bin/sed -i 's/^/ETCD_SERVERS=/' /root/etcd_servers
                 coreos:
                   etcd:
                     name: kubernetes-master-%index%
-                    discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
+                    discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                     addr: $private_ipv4:4001
                     peer-addr: $private_ipv4:7001
                   fleet:
@@ -198,6 +224,15 @@ resources:
                       command: start
                     - name: fleet.service
                       command: start
+                    - name: env-setup.service
+                      command: start
+                      content: |
+                        [Unit]
+                        After=network-online.target
+                        Requires=network-online.target
+
+                        [Service]
+                        ExecStart=/usr/bin/bash /root/setup_env.sh
                     - name: flannel-install.service
                       command: start
                       content: |
@@ -274,7 +309,7 @@ resources:
                 coreos:
                   etcd:
                     name: kubernetes-minion-%index%
-                    discovery: http://%discovery%:4001/v2/keys/_etcd/registry/%uuid%
+                    discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                     addr: $private_ipv4:4001
                     peer-addr: $private_ipv4:7001
                   fleet:
