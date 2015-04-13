@@ -36,8 +36,8 @@ parameters:
         selected to deploy into.
   coreos-image:
     type: string
-    description: Rackspace Cloud Servers CoreOS Alpha (618.0.0) UUID
-    default: "3cea2c39-26d8-4971-a1b0-be436fa2dece"
+    description: Rackspace Cloud Servers CoreOS Alpha (633.1.0) UUID
+    default: "61091a46-9609-4ef7-bc5b-15831e73878a"
   git-command:
     type: string
     description: Git repo checkout command

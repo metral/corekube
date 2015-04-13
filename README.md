@@ -1,18 +1,19 @@
 ## Corekube
 <img src="https://travis-ci.org/metral/corekube.svg?branch=master"></p>
 
-##### Last Major Update: 03/25/2015
+##### Last Major Update: 04/13/2015
 
-##### Latest Release: [v0.3.8](https://github.com/metral/corekube/releases/tag/v0.3.8)
+##### Latest Release: [v0.3.9](https://github.com/metral/corekube/releases/tag/v0.3.9)
 
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v618.0.0 - Alpha](https://coreos.com/releases/#618.0.0) | docker: v1.5.0 | etcd: v0.4.7 | fleet: v0.9.1
+CoreOS version used: [v633.1.0 - Alpha](https://coreos.com/releases/#633.1.0) | docker: v1.5.0 | etcd: v0.4.8 | fleet: v0.9.1
 
-Kubernetes version used: [v0.13.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.13.2)
+Kubernetes version used: [v0.14.2](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.14.2)
 
-API versions used in [Overlord](https://github.com/metral/overlord): etcd: v2 | fleet: v1-alpha | kubernetes: v1beta1
+API versions used in [Overlord](https://github.com/metral/overlord): etcd: v2 | fleet: v1 | kubernetes: v1beta2
+* For more detail, view [conf.json](https://github.com/metral/overlord/blob/master/conf.json)
 
 #### Quick Links
 * [Overlord](https://github.com/metral/overlord)
