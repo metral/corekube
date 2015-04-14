@@ -42,7 +42,6 @@ parameters:
     type: string
     description: Git repo checkout command
     default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 67887cc1aa7d3ada9a190d003cfb6a7379d54fa0"
-    #default: "/usr/bin/git clone https://github.com/metral/overlord"
   flannel-url:
     type: string
     description: Flannel Binary URL
@@ -171,7 +170,6 @@ resources:
                     ExecStartPre=/usr/bin/rm -rf $DIR
                     ExecStartPre=%git-command%
                     ExecStart=/usr/bin/bash ${DIR}/build_run.sh
-                    #ExecStart=/usr/bin/touch /tmp/blah
           params:
             "%discovery%": { get_attr: [discovery, networks, private, 0] }
             "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
