@@ -20,8 +20,7 @@ API versions used in [Overlord](https://github.com/metral/overlord): etcd: v2 | 
 * [Goutils](https://github.com/metral/goutils)
 
 #### Contributing
-Please create all pull requests against the 'master' branch. The
-'master' branch is constantly being updated. For stable versions, please go off of the releases >= v0.3.5
+Please create all pull requests against the 'dev' branch. For stable versions, please go off of the releases >= v0.3.5
 
 See [HACKING](https://github.com/metral/corekube/blob/master/HACKING.md) for
 more information.
