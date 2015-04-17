@@ -1,0 +1,416 @@
+heat_template_version: 2013-05-23
+
+description: Deploy a CoreOS cluster that operates a Kubernetes cluster
+
+parameters:
+  kubernetes-master-count:
+    description: Number of CoreOS machines to deploy as Kubernetes Master
+    type: number
+    default: 1
+    constraints:
+    - range:
+        min: 1
+        max: 1
+      description: Must be between 1 and 1 servers.
+  kubernetes-minion-count:
+    description: Number of CoreOS machines to deploy as Kubernetes Minion
+    type: number
+    default: 3
+    constraints:
+    - range:
+        min: 1
+        max: 12
+      description: Must be between 2 and 12 servers.
+  key-name:
+    type: string
+    description: Name of key-pair to be used for compute instance
+  flavor:
+    type: string
+    default: m1.medium
+    constraints:
+    - allowed_values:
+      - m1.medium
+      - m1.large
+      description: |
+        Must be a valid flavor
+  coreos-image:
+    type: string
+    description: Rackspace Cloud Servers CoreOS Alpha (633.1.0)
+    default: "CoreOS"
+  git-command:
+    type: string
+    description: Git repo checkout command
+    default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 024670e49c422ca389c0420a3800a1b2f5e49deb"
+  flannel-url:
+    type: string
+    description: Flannel Binary URL
+    default: "http://7bf6c2d3bf0e8b8fced5-2baf44983b7962278e524adc5d3c2251.r41.cf1.rackcdn.com/flanneld"
+  floating-network-id:
+    type: string
+    label: Floating Network ID
+    description: UUID of the external network. The private network created by this stack will route to this network. Any floating IP addresses needed by this stack will also route to this network. 
+
+resources:
+
+  coreos-cluster-uuid:
+    type: OS::Heat::RandomString
+
+  net:
+    type: OS::Neutron::Net
+    properties:
+      name: "corekube-private"
+
+  priv_network:
+    type: OS::Neutron::Subnet
+    properties:
+      name: "corekube-private-subnet"
+      network_id:
+        get_resource: net
+      cidr: "10.10.10.0/24"
+      gateway_ip: "10.10.10.1"
+      allocation_pools: [{"start": "10.10.10.2", "end": "10.10.10.254"}]
+      dns_nameservers:
+        - 8.8.8.8
+        - 8.8.4.4
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      name: "corekube-router"
+      external_gateway_info:
+        enable_snat: true
+        external_fixed_ips: [{"ip_address": "10.10.10.2"}]
+        network:
+          get_param: floating-network-id
+
+  interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id:
+        get_resource: router
+      subnet_id:
+        get_resource: priv_network
+
+#  discovery:
+#    type: OS::Nova::Server
+#    properties:
+#      key_name: { get_param: key-name }
+#      image: { get_param: coreos-image }
+#      flavor: { get_param: flavor }
+#      name: "discovery"
+#      user_data_format: RAW
+#      config_drive: "true"
+#      user_data: |
+#        #cloud-config
+#
+#        write_files:
+#          - path: /root/setup_env.sh
+#            permissions: '0755'
+#            owner: root
+#            content: |
+#              #!/bin/bash
+#              /usr/bin/ip -4 addr show eth1 | /usr/bin/awk '/inet/ {print $2}' | /usr/bin/cut -d/ -f1 > /root/IP
+#              /usr/bin/sed -i 's/^/IP=/' /root/IP
+#        coreos:
+#          update:
+#            group: alpha
+#            reboot-strategy: off
+#
+#          units:
+#            - name: private-discovery-setup.service
+#              command: start
+#              content: |
+#                [Unit]
+#                After=network-online.target
+#                Requires=network-online.target
+#
+#                [Service]
+#                ExecStart=/usr/bin/bash /root/setup_env.sh
+#            - name: private-discovery.service
+#              command: start
+#              content: |
+#                [Unit]
+#                After=network-online.target
+#                Requires=network-online.target
+#
+#                [Service]
+#                EnvironmentFile=/root/IP
+#                ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v2.0.9
+#                ExecStart=/usr/bin/docker run -d --name discovery -p 2379:2379 -p 2380:2380 -v /usr/share/ca-certificates/:/etc/ssl/certs --net host quay.io/coreos/etcd:v2.0.9 -name discovery -initial-advertise-peer-urls http://${IP}:2380,http://${IP}:7001 -listen-peer-urls http://${IP}:2380,http://${IP}:7001 -initial-cluster discovery=http://${IP}:2380,discovery=http://${IP}:7001 -advertise-client-urls http://${IP}:2379,http://${IP}:4001 -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001
+#
+#  overlord:
+#    type: OS::Nova::Server
+#    properties:
+#      key_name: { get_param: key-name }
+#      image: { get_param: coreos-image }
+#      flavor: { get_param: flavor }
+#      name: "overlord"
+#      user_data_format: RAW
+#      config_drive: "true"
+#      user_data:
+#        str_replace:
+#          template: |
+#            #cloud-config
+#
+#            coreos:
+#              etcd:
+#                name: overlord
+#                discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
+#                addr: $private_ipv4:4001
+#                peer-addr: $private_ipv4:7001
+#              update:
+#                group: alpha
+#                reboot-strategy: off
+#              units:
+#                - name: etcd.service
+#                  command: start
+#                - name: fleet.socket
+#                  command: start
+#                  content: |
+#                    [Socket]
+#                    # Talk to the API over a Unix domain socket (default)
+#                    ListenStream=/var/run/fleet.sock
+#                    # Talk to the API over an exposed port
+#                    ListenStream=10001
+#                    Service=fleet-local.service
+#
+#                    [Install]
+#                    WantedBy=sockets.target
+#                - name: fleet-local.service
+#                  command: start
+#                  content: |
+#                    [Unit]
+#                    Description=fleet-local
+#                    Wants=etcd.service
+#                    After=etcd.service
+#
+#                    [Service]
+#                    Environment=FLEET_PUBLIC_IP=$private_ipv4
+#                    Environment=FLEET_METADATA=kubernetes_role=overlord
+#                    ExecStart=/usr/bin/fleet
+#                    Restart=always
+#                    RestartSec=10s
+#                - name: overlord.service
+#                  command: start
+#                  content: |
+#                    [Unit]
+#                    After=network-online.target
+#                    Requires=network-online.target
+#
+#                    [Service]
+#                    WorkingDirectory=/root
+#                    Environment="DIR=overlord"
+#                    ExecStartPre=/usr/bin/rm -rf $DIR
+#                    ExecStartPre=%git-command%
+#                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh
+#          params:
+#            "%discovery%": { get_attr: [discovery, networks, private, 0] }
+#            "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
+#            "%git-command%": { get_param: git-command }
+#
+#  master_machines:
+#    type: "OS::Heat::ResourceGroup"
+#    properties:
+#      count: { get_param: kubernetes-master-count }
+#      resource_def:
+#        type: OS::Nova::Server
+#        properties:
+#          key_name: { get_param: key-name }
+#          image: { get_param: coreos-image }
+#          flavor: { get_param: flavor }
+#          name: kubernetes-master-%index%
+#          networks:
+#          - uuid: "00000000-0000-0000-0000-000000000000"
+#          - uuid: "11111111-1111-1111-1111-111111111111"
+#          - uuid: { get_resource: priv_network }
+#          user_data_format: RAW
+#          config_drive: "true"
+#          user_data:
+#            str_replace:
+#              template: |
+#                #cloud-config
+#
+#                write_files:
+#                  - path: /root/setup_env.sh
+#                    permissions: '0755'
+#                    owner: root
+#                    content: |
+#                      #!/bin/bash
+#                      /usr/bin/cat /run/systemd/system/etcd.service.d/20-cloudinit.conf | /usr/bin/grep -i discovery | /usr/bin/cut -f3 -d"=" | /usr/bin/awk -F '/v' '{print $1}' > /root/etcd_servers
+#                      /usr/bin/sed -i 's/^/ETCD_SERVERS=/' /root/etcd_servers
+#                coreos:
+#                  etcd:
+#                    name: kubernetes-master-%index%
+#                    discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
+#                    addr: $private_ipv4:4001
+#                    peer-addr: $private_ipv4:7001
+#                  fleet:
+#                    public-ip: $private_ipv4
+#                    metadata: kubernetes_role=master
+#                  update:
+#                    group: alpha
+#                    reboot-strategy: off
+#                  units:
+#                    - name: etcd.service
+#                      command: start
+#                    - name: fleet.service
+#                      command: start
+#                    - name: env-setup.service
+#                      command: start
+#                      content: |
+#                        [Unit]
+#                        After=network-online.target
+#                        Requires=network-online.target
+#
+#                        [Service]
+#                        ExecStart=/usr/bin/bash /root/setup_env.sh
+#                    - name: flannel-install.service
+#                      command: start
+#                      content: |
+#                        [Unit]
+#                        After=network-online.target
+#                        Requires=network-online.target
+#
+#                        [Service]
+#                        ExecStart=/usr/bin/wget -N -P /opt/bin %flannel-url%
+#                        ExecStart=/usr/bin/chmod +x /opt/bin/flanneld
+#                        RemainAfterExit=yes
+#                        Type=oneshot
+#                    - name: flannel.service
+#                      command: start
+#                      content: |
+#                        [Unit]
+#                        After=network-online.target etcd.service flannel-install.service
+#                        Requires=network-online.target etcd.service flannel-install.service
+#
+#                        [Service]
+#                        ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "vxlan"}}'
+#                        ExecStart=/opt/bin/flanneld -iface=eth2
+#                        Restart=always
+#                        RestartSec=5s
+#                    - name: flannel-env.path
+#                      command: start
+#                      content: |
+#                        [Path]
+#                        PathExists=/run/flannel/subnet.env
+#                        Unit=docker.service
+#                    - name: docker.service
+#                      command: start
+#                      content: |
+#                        [Unit]
+#                        After=flannel-env.path network-online.target flannel.service
+#                        Requires=flannel-env.path network-online.target flannel.service
+#                        Description=Docker Application Container Engine
+#
+#                        [Service]
+#                        EnvironmentFile=/run/flannel/subnet.env
+#                        ExecStartPre=/bin/mount --make-rprivate /
+#                        ExecStartPre=/usr/bin/systemctl kill docker.service
+#                        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
+#
+#                        [Install]
+#                        WantedBy=multi-user.target
+#              params:
+#                "%discovery%": { get_attr: [discovery, networks, private, 0] }
+#                "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
+#                "%flannel-url%": { get_param: flannel-url }
+#
+#  minion_machines:
+#    type: "OS::Heat::ResourceGroup"
+#    properties:
+#      count: { get_param: kubernetes-minion-count }
+#      resource_def:
+#        type: OS::Nova::Server
+#        properties:
+#          key_name: { get_param: key-name }
+#          image: { get_param: coreos-image }
+#          flavor: { get_param: flavor }
+#          name: kubernetes-minion-%index%
+#          networks:
+#          - uuid: "00000000-0000-0000-0000-000000000000"
+#          - uuid: "11111111-1111-1111-1111-111111111111"
+#          - uuid: { get_resource: priv_network }
+#          user_data_format: RAW
+#          config_drive: "true"
+#          user_data:
+#            str_replace:
+#              template: |
+#                #cloud-config
+#
+#                coreos:
+#                  etcd:
+#                    name: kubernetes-minion-%index%
+#                    discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
+#                    addr: $private_ipv4:4001
+#                    peer-addr: $private_ipv4:7001
+#                  fleet:
+#                    public-ip: $private_ipv4
+#                    metadata: kubernetes_role=minion
+#                  update:
+#                    group: alpha
+#                    reboot-strategy: off
+#                  units:
+#                    - name: etcd.service
+#                      command: start
+#                    - name: fleet.service
+#                      command: start
+#                    - name: flannel-install.service
+#                      command: start
+#                      content: |
+#                        [Unit]
+#                        After=network-online.target
+#                        Requires=network-online.target
+#
+#                        [Service]
+#                        ExecStart=/usr/bin/wget -N -P /opt/bin %flannel-url%
+#                        ExecStart=/usr/bin/chmod +x /opt/bin/flanneld
+#                        RemainAfterExit=yes
+#                        Type=oneshot
+#                    - name: flannel.service
+#                      command: start
+#                      content: |
+#                        [Unit]
+#                        After=etcd.service flannel-install.service
+#                        Requires=etcd.service flannel-install.service
+#
+#                        [Service]
+#                        ExecStart=/opt/bin/flanneld -iface=eth2
+#                        Restart=always
+#                        RestartSec=5s
+#                    - name: flannel-env.path
+#                      command: start
+#                      content: |
+#                        [Path]
+#                        PathExists=/run/flannel/subnet.env
+#                        Unit=docker.service
+#                    - name: docker.service
+#                      command: start
+#                      content: |
+#                        [Unit]
+#                        After=flannel-env.path network-online.target flannel.service
+#                        Requires=flannel-env.path network-online.target flannel.service
+#                        Description=Docker Application Container Engine
+#
+#                        [Service]
+#                        EnvironmentFile=/run/flannel/subnet.env
+#                        ExecStartPre=/bin/mount --make-rprivate /
+#                        ExecStartPre=/usr/bin/systemctl kill docker.service
+#                        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
+#
+#                        [Install]
+#                        WantedBy=multi-user.target
+#              params:
+#                "%discovery%": { get_attr: [discovery, networks, private, 0] }
+#                "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
+#                "%flannel-url%": { get_param: flannel-url }
+#
+#outputs:
+#  overlord_ip:
+#    value: { get_attr: [ overlord, accessIPv4 ] }
+#    description: The IP of the Overlord
+#  master_ips:
+#    value: { get_attr: [ master_machines, accessIPv4 ] }
+#    description: The IP of the Kubernetes Master(s)
+#  minion_ips:
+#    value: { get_attr: [ minion_machines, accessIPv4 ] }
+#    description: The IP of the Kubernetes Minions
