@@ -88,19 +88,19 @@ resources:
           port_range_min: 8080
           port_range_max: 8080
 
-  net:
+  corekube_network:
     type: OS::Neutron::ProviderNet
     properties:
       name: "corekube"
       network_type: "vlan"
       physical_network: "vlan"
 
-  priv_network:
+  corekube_subnet:
     type: OS::Neutron::Subnet
     properties:
       name: "corekube_subnet"
       network_id:
-        get_resource: net
+        get_resource: corekube_network
       cidr: "10.10.10.0/24"
       gateway_ip: "10.10.10.1"
       allocation_pools: [{"start": "10.10.10.2", "end": "10.10.10.254"}]
@@ -108,7 +108,7 @@ resources:
         - 8.8.8.8
         - 8.8.4.4
 
-  router:
+  corekube_router:
     type: OS::Neutron::Router
     properties:
       name: "corekube_router"
@@ -117,15 +117,15 @@ resources:
         network:
           get_param: floating_network_id
 
-  interface:
+  corekube_router_interface:
     type: OS::Neutron::RouterInterface
     properties:
       router_id:
-        get_resource: router
+        get_resource: corekube_router
       subnet_id:
-        get_resource: priv_network
+        get_resource: corekube_subnet
 
-  discovery_ip:
+  discovery_floatingip:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network_id:
@@ -137,13 +137,13 @@ resources:
       security_groups:
         - get_resource: stack_security
       network_id:
-        get_resource: net
+        get_resource: corekube_network
 
-  discovery_floating_ip_ass:
+  discovery_floatingip_association:
     type: OS::Neutron::FloatingIPAssociation
     properties:
       floatingip_id:
-        get_resource: discovery_ip
+        get_resource: discovery_floatingip
       port_id:
         get_resource: discovery_port
 
@@ -229,10 +229,8 @@ resources:
             "%wc_notify%": { get_attr: [wait_handle, curl_cli] }
 
 outputs:
-  curl_cli:
-    value: { get_attr: [wait_handle, curl_cli] }
-  wc_data:
-    value: { get_attr: [wait_condition, data] }
+  discovery_ip:
+    value: { get_attr: [discovery, networks, corekube, 0] }
 #
 #  overlord:
 #    type: OS::Nova::Server
