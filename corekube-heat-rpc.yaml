@@ -3,7 +3,7 @@ heat_template_version: 2013-05-23
 description: Deploy a CoreOS cluster that operates a Kubernetes cluster
 
 parameters:
-  kubernetes-master-count:
+  kubernetes_master_count:
     description: Number of CoreOS machines to deploy as Kubernetes Master
     type: number
     default: 1
@@ -12,7 +12,7 @@ parameters:
         min: 1
         max: 1
       description: Must be between 1 and 1 servers.
-  kubernetes-minion-count:
+  kubernetes_minion_count:
     description: Number of CoreOS machines to deploy as Kubernetes Minion
     type: number
     default: 3
@@ -25,9 +25,9 @@ parameters:
     description: Wait condition timeout seconds
     type: number
     default: 600
-  key-name:
+  key_name:
     type: string
-    description: Name of key-pair to be used for compute instance
+    description: Name of keypair to be used for compute instance
   flavor:
     type: string
     default: m0.medium
@@ -38,26 +38,26 @@ parameters:
       - m1.large
       description: |
         Must be a valid flavor
-  coreos-image:
+  coreos_image:
     type: string
     description: Rackspace Cloud Servers CoreOS Alpha (633.1.0)
     default: "CoreOS"
-  git-command:
+  git_command:
     type: string
     description: Git repo checkout command
     default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 024670e49c422ca389c0420a3800a1b2f5e49deb"
-  flannel-url:
+  flannel_url:
     type: string
     description: Flannel Binary URL
     default: "http://7bf6c2d3bf0e8b8fced5-2baf44983b7962278e524adc5d3c2251.r41.cf1.rackcdn.com/flanneld"
-  floating-network-id:
+  floating_network_id:
     type: string
     label: Floating Network ID
     description: UUID of the external network. The private network created by this stack will route to this network. Any floating IP addresses needed by this stack will also route to this network. 
 
 resources:
 
-  coreos-cluster-uuid:
+  coreos_cluster_uuid:
     type: OS::Heat::RandomString
 
   stack_security:
@@ -98,7 +98,7 @@ resources:
   priv_network:
     type: OS::Neutron::Subnet
     properties:
-      name: "corekube-subnet"
+      name: "corekube_subnet"
       network_id:
         get_resource: net
       cidr: "10.10.10.0/24"
@@ -111,11 +111,11 @@ resources:
   router:
     type: OS::Neutron::Router
     properties:
-      name: "corekube-router"
+      name: "corekube_router"
       external_gateway_info:
         enable_snat: true
         network:
-          get_param: floating-network-id
+          get_param: floating_network_id
 
   interface:
     type: OS::Neutron::RouterInterface
@@ -125,13 +125,13 @@ resources:
       subnet_id:
         get_resource: priv_network
 
-  discovery-ip:
+  discovery_ip:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network_id:
-        get_param: floating-network-id
+        get_param: floating_network_id
 
-  discovery-port:
+  discovery_port:
     type: OS::Neutron::Port
     properties:
       security_groups:
@@ -139,13 +139,13 @@ resources:
       network_id:
         get_resource: net
 
-  discovery-floating-ip-ass:
+  discovery_floating_ip_ass:
     type: OS::Neutron::FloatingIPAssociation
     properties:
       floatingip_id:
-        get_resource: discovery-ip
+        get_resource: discovery_ip
       port_id:
-        get_resource: discovery-port
+        get_resource: discovery_port
 
   wait_condition:
     type: OS::Heat::WaitCondition
@@ -160,13 +160,13 @@ resources:
   discovery:
     type: OS::Nova::Server
     properties:
-      key_name: { get_param: key-name }
-      image: { get_param: coreos-image }
+      key_name: { get_param: key_name }
+      image: { get_param: coreos_image }
       flavor: { get_param: flavor }
       name: "discovery"
       networks:
         - port:
-            get_resource: discovery-port
+            get_resource: discovery_port
       user_data_format: RAW
       config_drive: "true"
       user_data:
@@ -237,8 +237,8 @@ outputs:
 #  overlord:
 #    type: OS::Nova::Server
 #    properties:
-#      key_name: { get_param: key-name }
-#      image: { get_param: coreos-image }
+#      key_name: { get_param: key_name }
+#      image: { get_param: coreos_image }
 #      flavor: { get_param: flavor }
 #      name: "overlord"
 #      user_data_format: RAW
@@ -297,24 +297,24 @@ outputs:
 #                    WorkingDirectory=/root
 #                    Environment="DIR=overlord"
 #                    ExecStartPre=/usr/bin/rm -rf $DIR
-#                    ExecStartPre=%git-command%
+#                    ExecStartPre=%git_command%
 #                    ExecStart=/usr/bin/bash ${DIR}/build_run.sh
 #          params:
 #            "%discovery%": { get_attr: [discovery, networks, private, 0] }
-#            "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-#            "%git-command%": { get_param: git-command }
+#            "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
+#            "%git_command%": { get_param: git_command }
 #
 #  master_machines:
 #    type: "OS::Heat::ResourceGroup"
 #    properties:
-#      count: { get_param: kubernetes-master-count }
+#      count: { get_param: kubernetes_master_count }
 #      resource_def:
 #        type: OS::Nova::Server
 #        properties:
-#          key_name: { get_param: key-name }
-#          image: { get_param: coreos-image }
+#          key_name: { get_param: key_name }
+#          image: { get_param: coreos_image }
 #          flavor: { get_param: flavor }
-#          name: kubernetes-master-%index%
+#          name: kubernetes_master_%index%
 #          networks:
 #          - uuid: "00000000-0000-0000-0000-000000000000"
 #          - uuid: "11111111-1111-1111-1111-111111111111"
@@ -336,7 +336,7 @@ outputs:
 #                      /usr/bin/sed -i 's/^/ETCD_SERVERS=/' /root/etcd_servers
 #                coreos:
 #                  etcd:
-#                    name: kubernetes-master-%index%
+#                    name: kubernetes_master_%index%
 #                    discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
 #                    addr: $private_ipv4:4001
 #                    peer-addr: $private_ipv4:7001
@@ -368,7 +368,7 @@ outputs:
 #                        Requires=network-online.target
 #
 #                        [Service]
-#                        ExecStart=/usr/bin/wget -N -P /opt/bin %flannel-url%
+#                        ExecStart=/usr/bin/wget -N -P /opt/bin %flannel_url%
 #                        ExecStart=/usr/bin/chmod +x /opt/bin/flanneld
 #                        RemainAfterExit=yes
 #                        Type=oneshot
@@ -408,20 +408,20 @@ outputs:
 #                        WantedBy=multi-user.target
 #              params:
 #                "%discovery%": { get_attr: [discovery, networks, private, 0] }
-#                "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-#                "%flannel-url%": { get_param: flannel-url }
+#                "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
+#                "%flannel_url%": { get_param: flannel_url }
 #
 #  minion_machines:
 #    type: "OS::Heat::ResourceGroup"
 #    properties:
-#      count: { get_param: kubernetes-minion-count }
+#      count: { get_param: kubernetes_minion_count }
 #      resource_def:
 #        type: OS::Nova::Server
 #        properties:
-#          key_name: { get_param: key-name }
-#          image: { get_param: coreos-image }
+#          key_name: { get_param: key_name }
+#          image: { get_param: coreos_image }
 #          flavor: { get_param: flavor }
-#          name: kubernetes-minion-%index%
+#          name: kubernetes_minion_%index%
 #          networks:
 #          - uuid: "00000000-0000-0000-0000-000000000000"
 #          - uuid: "11111111-1111-1111-1111-111111111111"
@@ -435,7 +435,7 @@ outputs:
 #
 #                coreos:
 #                  etcd:
-#                    name: kubernetes-minion-%index%
+#                    name: kubernetes_minion_%index%
 #                    discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
 #                    addr: $private_ipv4:4001
 #                    peer-addr: $private_ipv4:7001
@@ -497,8 +497,8 @@ outputs:
 #                        WantedBy=multi-user.target
 #              params:
 #                "%discovery%": { get_attr: [discovery, networks, private, 0] }
-#                "%uuid%": { get_attr: [coreos-cluster-uuid, value] }
-#                "%flannel-url%": { get_param: flannel-url }
+#                "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
+#                "%flannel_url%": { get_param: flannel_url }
 #
 #outputs:
 #  overlord_ip:
