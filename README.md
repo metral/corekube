@@ -8,7 +8,7 @@
 ## TL;DR
 
 #### Versions
-CoreOS version used: [v633.1.0 - Alpha](https://coreos.com/releases/#633.1.0) | docker: v1.5.0 | etcd: v0.4.8 | fleet: v0.9.1
+CoreOS version used: [v633.1.0 - Stable](https://coreos.com/releases/#633.1.0) | docker: v1.5.0 | etcd: v0.4.8 | fleet: v0.9.1
 
 Kubernetes version used: [v0.15.0](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.15.0)
 
