@@ -209,17 +209,16 @@
            template: |
              #cloud-config
              write_files:
-               - path: /root/get_discovery_ip_port.sh
+               - path: /run/get_discovery_ip_port.sh
                  permissions: '0755'
-                 owner: root
                  content: |
                    #!/bin/bash
                    # Sets up environment file with the discovery node's IP &
                    # port so # that in Overlode's template 
                    # master-apiserver@.service it can be passed 
                    # in as an argument
-                   /usr/bin/cat /run/systemd/system/etcd.service.d/20-cloudinit.conf | /usr/bin/grep -i discovery | /usr/bin/cut -f3 -d"=" | /usr/bin/awk -F '/v' '{print $1}' > /root/discovery_ip_port
-                   /usr/bin/sed -i 's/^/DISCOVERY_IP_PORT=/' /root/discovery_ip_port
+                   /usr/bin/cat /run/systemd/system/etcd.service.d/20-cloudinit.conf | /usr/bin/grep -i discovery | /usr/bin/cut -f3 -d"=" | /usr/bin/awk -F '/v' '{print $1}' > /run/discovery_ip_port
+                   /usr/bin/sed -i 's/^/DISCOVERY_IP_PORT=/' /run/discovery_ip_port
              coreos:
                etcd:
                  name: kubernetes_master
@@ -248,7 +247,7 @@
                      Requires=network-online.target
 
                      [Service]
-                     ExecStart=/usr/bin/bash /root/get_discovery_ip_port.sh
+                     ExecStart=/usr/bin/bash /run/get_discovery_ip_port.sh
                  - name: flannel-install.service
                    command: start
                    content: |
