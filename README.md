@@ -10,7 +10,7 @@
 #### Versions
 CoreOS version used: [v633.1.0 - Stable](https://coreos.com/releases/#633.1.0) | docker: v1.5.0 | etcd: v0.4.8 | fleet: v0.9.1
 
-Kubernetes version used: [v0.15.0](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.15.0)
+Kubernetes version used: [v0.16.0](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.16.0)
 
 API versions used in [Overlord](https://github.com/metral/overlord): etcd: v2 | fleet: v1 | kubernetes: v1beta3
 * For more detail, view [conf.json](https://github.com/metral/overlord/blob/master/conf.json)
