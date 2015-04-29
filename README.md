@@ -171,7 +171,7 @@ $ docker images
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
 overlord            master              a3a95c2e3b1c        6 hours ago         604.9 MB
-google/golang       stable              e0d9d5bb3d3d        5 days ago          559.6 MB
+google/golang       1.4                 e0d9d5bb3d3d        5 days ago          559.6 MB
 ```
 
 Review all Docker processes:
@@ -180,7 +180,7 @@ Review all Docker processes:
 $ docker ps -a
 
 CONTAINER ID        IMAGE                     COMMAND                CREATED
-14678dc12d55        overlord:master           /gopath/bin/overlord   6 hours ago
+14678dc12d55        overlord:latest           /gopath/bin/overlord   6 hours ago
 ```
 
 Review the logs of the overlord's container:
@@ -188,91 +188,94 @@ Review the logs of the overlord's container:
 ```
 $ docker logs 14678dc12d55
 
-2014/12/15 20:12:20 ------------------------------------------------
-2014/12/15 20:12:20 Current # of machines discovered: (4)
-2014/12/15 20:12:20 ------------------------------------------------
-2014/12/15 20:12:20 Found machine:
-2014/12/15 20:12:20 -- ID: a43295d4ed574a45a6f91b86baea0093
-2014/12/15 20:12:20 -- IP: 10.209.35.141
-2014/12/15 20:12:20 -- Metadata: (kubernetes_role => master)
-2014/12/15 20:12:20 Created all unit files for: a43295d4ed574a45a6f91b86baea0093
-2014/12/15 20:12:20 Starting unit file: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:22 -- Waiting for the following unit file to complete: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:23 -- Waiting for the following unit file to complete: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:24 -- Waiting for the following unit file to complete: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:25 -- Waiting for the following unit file to complete: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:38 The following unit file has completed: master-download-kubernetes@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:38 Starting unit file: master-apiserver@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:40 -- Waiting for the following unit file to complete: master-apiserver@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:41 The following unit file has completed: master-apiserver@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:41 Starting unit file: master-controller-manager@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:43 -- Waiting for the following unit file to complete: master-controller-manager@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:44 The following unit file has completed: master-controller-manager@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:44 Starting unit file: master-scheduler@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:46 The following unit file has completed: master-scheduler@a43295d4ed574a45a6f91b86baea0093.service
-2014/12/15 20:12:46 ------------------------------------------------
-2014/12/15 20:12:46 Found machine:
-2014/12/15 20:12:46 -- ID: cacff367124f4021b5697de895934ca5
-2014/12/15 20:12:46 -- IP: 10.209.36.4
-2014/12/15 20:12:46 -- Metadata: (kubernetes_role => minion)
-2014/12/15 20:12:46 Created all unit files for: cacff367124f4021b5697de895934ca5
-2014/12/15 20:12:46 Starting unit file: minion-download-kubernetes@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:12:48 -- Waiting for the following unit file to complete: minion-download-kubernetes@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:12:49 -- Waiting for the following unit file to complete: minion-download-kubernetes@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:12:54 The following unit file has completed: minion-download-kubernetes@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:12:54 Starting unit file: minion-kubelet@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:12:56 -- Waiting for the following unit file to complete: minion-kubelet@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:12:57 -- Waiting for the following unit file to complete: minion-kubelet@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:12:58 The following unit file has completed: minion-kubelet@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:12:58 Starting unit file: minion-proxy@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:13:00 -- Waiting for the following unit file to complete: minion-proxy@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:13:01 The following unit file has completed: minion-proxy@cacff367124f4021b5697de895934ca5.service
-2014/12/15 20:13:02 ------------------------------------------------
-2014/12/15 20:13:02 Found machine:
-2014/12/15 20:13:02 -- ID: 28df6146a18f42b6a99162e082c0ae28
-2014/12/15 20:13:02 -- IP: 10.209.35.248
-2014/12/15 20:13:02 -- Metadata: (kubernetes_role => minion)
-2014/12/15 20:13:02 Created all unit files for: 28df6146a18f42b6a99162e082c0ae28
-2014/12/15 20:13:02 Starting unit file: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:04 -- Waiting for the following unit file to complete: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:05 -- Waiting for the following unit file to complete: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:06 -- Waiting for the following unit file to complete: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:10 The following unit file has completed: minion-download-kubernetes@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:10 Starting unit file: minion-kubelet@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:12 -- Waiting for the following unit file to complete: minion-kubelet@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:13 The following unit file has completed: minion-kubelet@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:13 Starting unit file: minion-proxy@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:15 -- Waiting for the following unit file to complete: minion-proxy@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:16 The following unit file has completed: minion-proxy@28df6146a18f42b6a99162e082c0ae28.service
-2014/12/15 20:13:16 ------------------------------------------------
-2014/12/15 20:13:16 Found machine:
-2014/12/15 20:13:16 -- ID: e0e14b428b454a2fab7caff4b4f21b1a
-2014/12/15 20:13:16 -- IP: 10.209.35.240
-2014/12/15 20:13:16 -- Metadata: (kubernetes_role => minion)
-2014/12/15 20:13:16 Created all unit files for: e0e14b428b454a2fab7caff4b4f21b1a
-2014/12/15 20:13:16 Starting unit file: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:18 -- Waiting for the following unit file to complete: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:19 -- Waiting for the following unit file to complete: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:20 -- Waiting for the following unit file to complete: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:21 -- Waiting for the following unit file to complete: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:22 The following unit file has completed: minion-download-kubernetes@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:22 Starting unit file: minion-kubelet@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:24 -- Waiting for the following unit file to complete: minion-kubelet@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:25 The following unit file has completed: minion-kubelet@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:25 Starting unit file: minion-proxy@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:28 The following unit file has completed: minion-proxy@e0e14b428b454a2fab7caff4b4f21b1a.service
-2014/12/15 20:13:28 ------------------------------------------------
-2014/12/15 20:13:28 Registered machine with the master: 10.209.36.4
-2014/12/15 20:13:28 ------------------------------------------------
-2014/12/15 20:13:28 Registered machine with the master: 10.209.35.248
-2014/12/15 20:13:29 ------------------------------------------------
-2014/12/15 20:13:29 Registered machine with the master: 10.209.35.240
-2014/12/15 20:13:30 ------------------------------------------------
-2014/12/15 20:13:30 Current # of machines discovered: (4)
-2014/12/15 20:13:31 ------------------------------------------------
-2014/12/15 20:13:31 Current # of machines discovered: (4)
-2014/12/15 20:13:32 ------------------------------------------------
-2014/12/15 20:13:32 Current # of machines discovered: (4)
+2015/04/29 22:35:25 ------------------------------------------------------------
+2015/04/29 22:35:25 Current # of machines seen/deployed to: (0)
+2015/04/29 22:35:25 ------------------------------------------------------------
+2015/04/29 22:35:25 Current # of machines discovered: (4)
+2015/04/29 22:35:25 ------------------------------------------------------------
+2015/04/29 22:35:25 Found machine:
+2015/04/29 22:35:25 -- ID: 15af742f87f94806979e82a474b41e91
+2015/04/29 22:35:25 -- IP: 10.208.4.90
+2015/04/29 22:35:25 -- Metadata: (kubernetes_role => master)
+2015/04/29 22:35:25 Created all unit files for: 15af742f87f94806979e82a474b41e91
+2015/04/29 22:35:25 Starting unit file: master-download-kubernetes@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:27 -- Waiting for the following unit file to complete: master-download-kubernetes@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:28 -- Waiting for the following unit file to complete: master-download-kubernetes@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:29 -- Waiting for the following unit file to complete: master-download-kubernetes@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:42 The following unit file has completed: master-download-kubernetes@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:42 Starting unit file: master-apiserver@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:44 -- Waiting for the following unit file to complete: master-apiserver@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:45 The following unit file has completed: master-apiserver@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:45 Starting unit file: master-controller-manager@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:47 -- Waiting for the following unit file to complete: master-controller-manager@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:48 The following unit file has completed: master-controller-manager@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:48 Starting unit file: master-scheduler@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:50 -- Waiting for the following unit file to complete: master-scheduler@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:51 The following unit file has completed: master-scheduler@15af742f87f94806979e82a474b41e91.service
+2015/04/29 22:35:53 ------------------------------------------------------------
+2015/04/29 22:35:53 Current # of machines seen/deployed to: (1)
+2015/04/29 22:35:53 ------------------------------------------------------------
+2015/04/29 22:35:53 Current # of machines discovered: (4)
+2015/04/29 22:35:53 ------------------------------------------------------------
+2015/04/29 22:35:53 Found machine:
+2015/04/29 22:35:53 -- ID: 982129fef26b4790ba64b405b2602c14
+2015/04/29 22:35:53 -- IP: 10.208.4.104
+2015/04/29 22:35:53 -- Metadata: (kubernetes_role => minion)
+2015/04/29 22:35:53 Created all unit files for: 982129fef26b4790ba64b405b2602c14
+2015/04/29 22:35:53 Starting unit file: minion-download-kubernetes@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:35:55 -- Waiting for the following unit file to complete: minion-download-kubernetes@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:00 -- Waiting for the following unit file to complete: minion-download-kubernetes@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:01 The following unit file has completed: minion-download-kubernetes@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:01 Starting unit file: minion-kubelet@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:03 -- Waiting for the following unit file to complete: minion-kubelet@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:04 The following unit file has completed: minion-kubelet@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:04 Starting unit file: minion-proxy@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:06 -- Waiting for the following unit file to complete: minion-proxy@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:07 The following unit file has completed: minion-proxy@982129fef26b4790ba64b405b2602c14.service
+2015/04/29 22:36:07 Registered node with the Kubernetes master: 10.208.4.104
+2015/04/29 22:36:08 ------------------------------------------------------------
+2015/04/29 22:36:08 Found machine:
+2015/04/29 22:36:08 -- ID: 77e4d44ab2204fb0892aa7beccdff88f
+2015/04/29 22:36:08 -- IP: 10.208.4.92
+2015/04/29 22:36:08 -- Metadata: (kubernetes_role => minion)
+2015/04/29 22:36:08 Created all unit files for: 77e4d44ab2204fb0892aa7beccdff88f
+2015/04/29 22:36:08 Starting unit file: minion-download-kubernetes@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:10 -- Waiting for the following unit file to complete: minion-download-kubernetes@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:11 -- Waiting for the following unit file to complete: minion-download-kubernetes@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:12 The following unit file has completed: minion-download-kubernetes@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:12 Starting unit file: minion-kubelet@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:14 -- Waiting for the following unit file to complete: minion-kubelet@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:15 The following unit file has completed: minion-kubelet@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:15 Starting unit file: minion-proxy@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:17 -- Waiting for the following unit file to complete: minion-proxy@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:18 The following unit file has completed: minion-proxy@77e4d44ab2204fb0892aa7beccdff88f.service
+2015/04/29 22:36:18 Registered node with the Kubernetes master: 10.208.4.92
+2015/04/29 22:36:19 ------------------------------------------------------------
+2015/04/29 22:36:19 Found machine:
+2015/04/29 22:36:19 -- ID: 29b66575a8da412c8236af2716e55382
+2015/04/29 22:36:19 -- IP: 10.208.4.116
+2015/04/29 22:36:19 -- Metadata: (kubernetes_role => minion)
+2015/04/29 22:36:19 Created all unit files for: 29b66575a8da412c8236af2716e55382
+2015/04/29 22:36:19 Starting unit file: minion-download-kubernetes@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:21 -- Waiting for the following unit file to complete: minion-download-kubernetes@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:22 -- Waiting for the following unit file to complete: minion-download-kubernetes@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:23 The following unit file has completed: minion-download-kubernetes@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:23 Starting unit file: minion-kubelet@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:25 -- Waiting for the following unit file to complete: minion-kubelet@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:26 -- Waiting for the following unit file to complete: minion-kubelet@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:27 The following unit file has completed: minion-kubelet@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:27 Starting unit file: minion-proxy@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:29 -- Waiting for the following unit file to complete: minion-proxy@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:30 -- Waiting for the following unit file to complete: minion-proxy@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:31 The following unit file has completed: minion-proxy@29b66575a8da412c8236af2716e55382.service
+2015/04/29 22:36:31 Registered node with the Kubernetes master: 10.208.4.116
+2015/04/29 22:36:33 ------------------------------------------------------------
+2015/04/29 22:36:33 Current # of machines seen/deployed to: (4)
+2015/04/29 22:36:33 ------------------------------------------------------------
+2015/04/29 22:36:33 Current # of machines discovered: (4)
+2015/04/29 22:36:34 ------------------------------------------------------------
+2015/04/29 22:36:34 Current # of machines seen/deployed to: (4)
+2015/04/29 22:36:34 ------------------------------------------------------------
 
 ```
 
@@ -300,6 +303,13 @@ Follow this set of steps to get you started:
 
     ```
     $ /opt/bin/kubectl get pods
+    ```
+
+* Once all the containers are running, hit the IP on the 10.244.xxx.yyy subnet
+  for the frontend machine you wish to reach either in a browser or curl, i.e.:
+
+    ```
+    $ curl 10.244.22.2
     ```
 
 **Note:**
