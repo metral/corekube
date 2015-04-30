@@ -1,0 +1,61 @@
+#cloud-config
+coreos:
+  etcd:
+    name: overlord
+    discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
+    addr: $private_ipv4:4001
+    peer-addr: $private_ipv4:7001
+  update:
+    group: alpha
+    reboot-strategy: off
+  units:
+    - name: setup-environment.service
+      command: start
+      runtime: true
+      content: |
+        [Unit]
+        Description=Setup environment with private (and public) IP addresses
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/run/setup-environment.sh
+    - name: fleet.socket
+      command: start
+      content: |
+        [Socket]
+        # Talk to the API over a Unix domain socket (default)
+        ListenStream=/var/run/fleet.sock
+        # Talk to the API over an exposed port
+        ListenStream=10001
+        Service=fleet-local.service
+
+        [Install]
+        WantedBy=sockets.target
+    - name: fleet-local.service
+      command: start
+      content: |
+        [Unit]
+        Description=fleet-local
+        Wants=etcd.service
+        Requires=etcd.service
+
+        [Service]
+        Environment=FLEET_PUBLIC_IP=$private_ipv4
+        Environment=FLEET_METADATA=kubernetes_role=overlord
+        ExecStart=/usr/bin/fleet
+        Restart=always
+        RestartSec=10s
+    - name: overlord.service
+      command: start
+      content: |
+        [Unit]
+        After=network-online.target etcd.service
+        Requires=network-online.target etcd.service
+
+        [Service]
+        WorkingDirectory=/root
+        Environment="DIR=overlord"
+        ExecStartPre=/usr/bin/rm -rf $DIR
+        ExecStartPre=%git_command%
+        ExecStart=/usr/bin/bash ${DIR}/build_run.sh
