@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-$HOME/gopath/bin/corekube_test \
+$HOME/gopath/bin/infra_test \
     --authUrl=$TRAVIS_OS_AUTH_URL \
     --keypair=$TRAVIS_OS_KEYPAIR \
     --password=$TRAVIS_OS_PASSWORD \
