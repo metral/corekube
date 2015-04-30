@@ -236,7 +236,8 @@
                    command: start
                  - name: fleet.service
                    command: start
-                 - name: overlord-kubernetes-master-setup.service
+                 - name: get_discovery_ip_port.service
+                   runtime: true
                    command: start
                    content: |
                      # Runs get_discovery_ip_port.sh to have discovery IP &
