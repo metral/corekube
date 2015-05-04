@@ -47,7 +47,7 @@ The main pillars of Corekube's mission can be categorized into the following:
 
 #### Quick Links
 * [Overlord](https://github.com/metral/overlord) - _Deployment logic to stand up a Kubernetes cluster_
-* [corekube_travis](https://github.com/metral/corekube_travis) - TravisCI build & setup scripts for testing infrascture & ovelord tasks
+* [corekube_travis](https://github.com/metral/corekube_travis) - TravisCI build & setup scripts for testing infrastructure & overlord tasks
 * [goheat](https://github.com/metral/goheat) - _Golang library to interact with OpenStack Heat_
 * [goutils](https://github.com/metral/goutils) - _Golang library for common functionality_
 
