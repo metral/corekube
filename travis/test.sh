@@ -6,4 +6,4 @@ $HOME/gopath/bin/infra_test \
     --password=$TRAVIS_OS_PASSWORD \
     --username=$TRAVIS_OS_USERNAME \
     --tenantId=$TRAVIS_OS_TENANT_ID \
-    --templateFile="$HOME/gopath/src/github.com/metral/corekube/corekube-heat.yaml"
+    --templateFile="$HOME/gopath/src/github.com/metral/corekube/corekube-cloudservers.yaml"
