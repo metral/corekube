@@ -1,23 +1,55 @@
 ## Corekube
 <img src="https://travis-ci.org/metral/corekube.svg?branch=master"></p>
 
-##### Last Major Update: 04/24/2015
+##### Last Major Update: 05/04/2015
 
-##### [Latest Release](https://github.com/metral/corekube/releases/latest)
+#### [Latest Release](https://github.com/metral/corekube/releases/latest)
 
 ## TL;DR
 
-#### Versions
-CoreOS version used: [v633.1.0 - Stable](https://coreos.com/releases/#633.1.0) | docker: v1.5.0 | etcd: v0.4.8 | fleet: v0.9.1
+Corekube is a Heat template for [OpenStack](https://www.openstack.org) that creates the necessary infrastructure as well as configures it accordingly to deploy and host a Kubernetes cluster.
 
-Kubernetes version used: [v0.16.0](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.16.0)
+The main pillars of Corekube's mission can be categorized into the following:
 
-API versions used in [Overlord](https://github.com/metral/overlord): etcd: v2 | fleet: v1 | kubernetes: v1beta3
-* For more detail, view [conf.json](https://github.com/metral/overlord/blob/master/conf.json)
+1. **Infrastructure** (a.k.a "infra") - Includes the creation, provisioning and installation of the underlying cloud infrastructure and tools required to setup a Kubernetes cluster. (This is the heat template itself)
+2. **Discovery** - Utilizes Etcd to enable a private discovery service amongst the servers.
+3. **Overlord** - The deployment logic that consumes the infrastructure created, as well as the cluster information coordinated by the 'Discovery' node, to deploy Kubernetes onto the servers.
+
+#### Component Versions
+**CoreOS** - OS running on all nodes
+
+|      **Tool**      |                          **Version**                         |
+|:--------------:|:--------------------------------------------------------:|
+|     CoreOS     | [633.1.0 (Stable)](https://coreos.com/releases/#633.1.0) |
+|     Docker     |                           1.5.0                          |
+|  Etcd (Client) |                           0.4.8                          |
+| Fleet (Client) |                           0.9.1                          |
+|     Flannel*   |                           0.4.0                          |
+
+*Note: Flannel is running on all Kubenetes nodes only. It is not installed nor configured on neither the Discovery or Overlord nodes.
+
+
+**Kubernetes** - Management layer for containerized appliations
+
+|    **Tool**    |                                      **Version**                                     |
+|:----------:|:--------------------------------------------------------------------------------:|
+| Kubernetes | [0.16.0](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v0.16.0) |
+
+**Overlord** - Deployment logic that stands up a Kubenetes cluster
+
+|      **Tool**      | **Version** |
+|:--------------:|:-------:|
+|    Etcd API    |    v2   |
+|    Fleet API   |    v1   |
+| Kubernetes API | v1beta3 |
+
+* For more detail, view its [conf.json](https://github.com/metral/overlord/blob/master/conf.json)
 
 #### Quick Links
-* [Overlord](https://github.com/metral/overlord)
-* [Goutils](https://github.com/metral/goutils)
+* [Overlord](https://github.com/metral/overlord) - _Deployment logic to stand up a Kubernetes cluster_
+* [corekube_travis](https://github.com/metral/corekube_travis) - TravisCI build & setup scripts for testing infrascture & ovelord tasks
+* [goheat](https://github.com/metral/goheat) - _Golang library to interact with OpenStack Heat_
+* [goutils](https://github.com/metral/goutils) - _Golang library for common functionality_
 
 #### Contributing
 Please create all pull requests against the 'dev' branch. For stable versions, please go off of the releases >= v0.3.5
@@ -25,14 +57,14 @@ Please create all pull requests against the 'dev' branch. For stable versions, p
 See [HACKING](https://github.com/metral/corekube/blob/master/HACKING.md) for
 more information.
 
-#### Original Blog Post (Sept. 10, 2014) *Outdated*
+#### Original Blog Post (Sept. 10, 2014) _**Outdated**_
 
 [Full Blog Post on Rackspace Developer Blog](https://developer.rackspace.com/blog/running-coreos-and-kubernetes/)
 
 #### Corekube Deployment
 
 ```
-heat stack-create corekube --template-file corekube-heat.yaml -P key-name=<RAX_SSH_KEYNAME>
+heat stack-create corekube --template-file corekube-cloudservers.yaml -P key-name=<RAX_SSH_KEYNAME>
 ```
 
 #### Using Kubernetes on the Corekube Deployment
