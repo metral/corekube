@@ -64,7 +64,7 @@ more information.
 #### Corekube Deployment
 
 ```
-heat stack-create corekube --template-file corekube-cloudservers.yaml -P key-name=<RAX_SSH_KEYNAME>
+heat stack-create corekube --template-file corekube-cloudservers.yaml -P keyname=<RAX_SSH_KEYNAME>
 ```
 
 #### Using Kubernetes on the Corekube Deployment

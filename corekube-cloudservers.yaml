@@ -12,7 +12,7 @@
          min: 1
          max: 12
        description: Must be between 2 and 12 servers.
-   key_name:
+   keyname:
      type: string
      description: Name of keypair to be used for compute instance
    flavor:
@@ -60,7 +60,7 @@
    discovery:
      type: OS::Nova::Server
      properties:
-       key_name: { get_param: key_name }
+       key_name: { get_param: keyname }
        image: { get_param: coreos_image }
        flavor: { get_param: flavor }
        name: "discovery"
@@ -120,7 +120,7 @@
    overlord:
      type: OS::Nova::Server
      properties:
-       key_name: { get_param: key_name }
+       key_name: { get_param: keyname }
        image: { get_param: coreos_image }
        flavor: { get_param: flavor }
        name: "overlord"
@@ -194,7 +194,7 @@
    kubernetes_master:
      type: OS::Nova::Server
      properties:
-       key_name: { get_param: key_name }
+       key_name: { get_param: keyname }
        image: { get_param: coreos_image }
        flavor: { get_param: flavor }
        name: "kubernetes_master"
@@ -312,7 +312,7 @@
        resource_def:
          type: OS::Nova::Server
          properties:
-           key_name: { get_param: key_name }
+           key_name: { get_param: keyname }
            image: { get_param: coreos_image }
            flavor: { get_param: flavor }
            name: kubernetes_minion_%index%
