@@ -49,7 +49,7 @@
    flannel_url:
      type: string
      description: Flannel Binary URL
-     default: "http://7bf6c2d3bf0e8b8fced5-2baf44983b7962278e524adc5d3c2251.r41.cf1.rackcdn.com/flanneld"
+     default: "http://a26736f09be9784cb06f-8d30bd32035bc1ac3e9215d2d6eedfc5.r53.cf1.rackcdn.com/flanneld"
    floating_network_id:
      type: string
      label: Floating Network ID
