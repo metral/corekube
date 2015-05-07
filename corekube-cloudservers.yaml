@@ -82,7 +82,7 @@
                    /usr/bin/sed -i 's/^/IP=/' /run/IP
              coreos:
                update:
-                 group: alpha
+                 group: stable
                  reboot-strategy: off
                units:
                  - name: private-discovery-setup.service
@@ -137,7 +137,7 @@
                  addr: $private_ipv4:4001
                  peer-addr: $private_ipv4:7001
                update:
-                 group: alpha
+                 group: stable
                  reboot-strategy: off
                units:
                  - name: etcd.service
@@ -229,7 +229,7 @@
                  public-ip: $private_ipv4
                  metadata: kubernetes_role=master
                update:
-                 group: alpha
+                 group: stable
                  reboot-strategy: off
                units:
                  - name: etcd.service
@@ -336,7 +336,7 @@
                      public-ip: $private_ipv4
                      metadata: kubernetes_role=minion
                    update:
-                     group: alpha
+                     group: stable
                      reboot-strategy: off
                    units:
                      - name: etcd.service
