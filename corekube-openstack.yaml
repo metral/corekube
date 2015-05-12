@@ -17,12 +17,12 @@
      description: Name of keypair to be used for compute instance
    flavor:
      type: string
-     default: m0.medium
+     default: m1.medium
      constraints:
      - allowed_values:
-       - m0.medium
        - m1.medium
        - m1.large
+       - m1.xlarge
        description: |
          Must be a valid flavor
    coreos_image:
