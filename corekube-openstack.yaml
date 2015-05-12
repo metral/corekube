@@ -12,7 +12,7 @@
          min: 1
          max: 12
        description: Must be between 2 and 12 servers.
-   key_name:
+   keyname:
      type: string
      description: Name of keypair to be used for compute instance
    flavor:
@@ -49,7 +49,7 @@
      description: Wait condition timeout seconds
      type: number
      default: 600
-   floating_network_id:
+   floating-network-id:
      type: string
      label: Floating Network ID
      description: UUID of the external network. The private network created by this stack will route to this network. Any floating IP addresses needed by this stack will also route to this network. 
@@ -102,7 +102,7 @@
        external_gateway_info:
          enable_snat: true
          network:
-           get_param: floating_network_id
+           get_param: floating-network-id
 
    corekube_router_interface:
      type: OS::Neutron::RouterInterface
@@ -125,7 +125,7 @@
      type: OS::Neutron::FloatingIP
      properties:
        floating_network_id:
-         get_param: floating_network_id
+         get_param: floating-network-id
 
    discovery_port:
      type: OS::Neutron::Port
@@ -146,7 +146,7 @@
    discovery:
      type: OS::Nova::Server
      properties:
-       key_name: { get_param: key_name }
+       key_name: { get_param: keyname }
        image: { get_param: coreos_image }
        flavor: { get_param: flavor }
        name: "discovery"
@@ -236,7 +236,7 @@
      type: OS::Neutron::FloatingIP
      properties:
        floating_network_id:
-         get_param: floating_network_id
+         get_param: floating-network-id
 
    overlord_port:
      type: OS::Neutron::Port
@@ -257,7 +257,7 @@
    overlord:
      type: OS::Nova::Server
      properties:
-       key_name: { get_param: key_name }
+       key_name: { get_param: keyname }
        image: { get_param: coreos_image }
        flavor: { get_param: flavor }
        name: "overlord"
@@ -403,7 +403,7 @@
      type: OS::Neutron::FloatingIP
      properties:
        floating_network_id:
-         get_param: floating_network_id
+         get_param: floating-network-id
 
    kubernetes_master_port:
      type: OS::Neutron::Port
@@ -424,7 +424,7 @@
    kubernetes_master:
      type: OS::Nova::Server
      properties:
-       key_name: { get_param: key_name }
+       key_name: { get_param: keyname }
        image: { get_param: coreos_image }
        flavor: { get_param: flavor }
        name: "kubernetes_master"
@@ -592,12 +592,12 @@
        resource_def:
          type: OS::Nova::Server
          properties:
-           key_name: { get_param: key_name }
+           key_name: { get_param: keyname }
            image: { get_param: coreos_image }
            flavor: { get_param: flavor }
            name: kubernetes_minion_%index%
            networks:
-           - network: corekube
+            - network: { get_resource: corekube_network }
            security_groups:
              - get_resource: stack_security
            user_data_format: RAW

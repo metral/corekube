@@ -1,0 +1,28 @@
+name: Kubernetes
+release: 0.4.2
+logo: assets/logo.png
+
+short_desc: >
+                Corekube delivers a deployable configuration of Kubernetes using CoreOS, Etcd, Fleet, and Flannel via OpenStack Orchestration (heat), available in any Rackspace OpenStack Private Cloud.
+
+long_desc: >
+                Corekube is a Heat template for OpenStack that creates the necessary infrastructure as well as configures it accordingly to deploy and host a Kubernetes cluster.
+
+                The main pillars of Corekube's mission can be categorized into the following:
+
+                Infrastructure (a.k.a "infra") - Includes the creation, provisioning and installation of the underlying cloud infrastructure and tools required to setup a Kubernetes cluster.
+                Discovery - Utilizes Etcd to enable a private discovery service amongst the servers.
+                Overlord - The deployment logic that consumes the infrastructure created, as well as the cluster information coordinated by the 'Discovery' node, to deploy Kubernetes onto the servers.
+
+architecture: >
+                With a deployment driven by OpenStack Orchestration, we are able to deliver a Kubernetes stack.
+
+design_specs:
+            - >
+                The Overlord provisions all nodes with the appropriate metadata, vanilla image or not, directly into the existing or new Kubernetes cluster
+            - >
+                Numerous Kubernetes minion (nodes) are deployed to create a great foundation for a proof-of-concept Kubernetes cluster
+            - >
+                Network isolation isolation at various levels within the stack provide enhanced Cloud security.
+
+heat_template: corekube-openstack.yaml
