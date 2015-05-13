@@ -176,7 +176,7 @@
                    %wc_notify% --data-binary '{"status": "SUCCESS"}'
              coreos:
                update:
-                 group: alpha
+                 group: stable
                  reboot-strategy: off
                units:
                  - name: private-discovery-setup.service
@@ -323,7 +323,7 @@
                  addr: $private_ipv4:4001
                  peer-addr: $private_ipv4:7001
                update:
-                 group: alpha
+                 group: stable
                  reboot-strategy: off
                units:
                  - name: setup-etcd-cloudinit-conf.service
@@ -498,7 +498,7 @@
                  public-ip: $private_ipv4
                  metadata: kubernetes_role=master
                update:
-                 group: alpha
+                 group: stable
                  reboot-strategy: off
                units:
                  - name: setup-etcd-cloudinit-conf.service
@@ -657,7 +657,7 @@
                      public-ip: $private_ipv4
                      metadata: kubernetes_role=minion
                    update:
-                     group: alpha
+                     group: stable
                      reboot-strategy: off
                    units:
                      - name: setup-etcd-cloudinit-conf.service
