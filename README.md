@@ -1,7 +1,7 @@
 ## Corekube
 <img src="https://travis-ci.org/metral/corekube.svg?branch=master"></p>
 
-##### Last Major Update: 05/04/2015
+##### Last Major Update: 05/13/2015
 
 #### [Latest Release](https://github.com/metral/corekube/releases/latest)
 
