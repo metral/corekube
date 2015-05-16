@@ -50,12 +50,6 @@
    coreos_cluster_uuid:
      type: OS::Heat::RandomString
 
-   priv_network:
-     type: Rackspace::Cloud::Network
-     properties:
-       label: kubernetes
-       cidr: 192.168.3.0/24
-
    discovery:
      type: OS::Nova::Server
      properties:
@@ -200,7 +194,6 @@
        networks:
        - uuid: "00000000-0000-0000-0000-000000000000"
        - uuid: "11111111-1111-1111-1111-111111111111"
-       - uuid: { get_resource: priv_network }
        user_data_format: RAW
        config_drive: "true"
        user_data:
@@ -318,7 +311,6 @@
            networks:
            - uuid: "00000000-0000-0000-0000-000000000000"
            - uuid: "11111111-1111-1111-1111-111111111111"
-           - uuid: { get_resource: priv_network }
            user_data_format: RAW
            config_drive: "true"
            user_data:
