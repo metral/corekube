@@ -140,9 +140,9 @@
              coreos:
                etcd:
                  name: overlord
-                 discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                  addr: $private_ipv4:4001
                  peer-addr: $private_ipv4:7001
+                 discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                update:
                  group: stable
                  reboot-strategy: off
@@ -228,9 +228,9 @@
              coreos:
                etcd:
                  name: kubernetes_master
-                 discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                  addr: $private_ipv4:4001
                  peer-addr: $private_ipv4:7001
+                 discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                fleet:
                  public-ip: $private_ipv4
                  metadata: kubernetes_role=master
@@ -334,9 +334,9 @@
                  coreos:
                    etcd:
                      name: kubernetes_minion_%index%
-                     discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                      addr: $private_ipv4:4001
                      peer-addr: $private_ipv4:7001
+                     discovery: http://%discovery%:2379/v2/keys/discovery/%uuid%
                    fleet:
                      public-ip: $private_ipv4
                      metadata: kubernetes_role=minion
