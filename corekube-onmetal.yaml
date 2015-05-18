@@ -15,7 +15,7 @@
    keyname:
      type: string
      description: Name of keypair to be used for compute instance
-   flavor:
+   flavor_cluster:
      type: string
      default: OnMetal Compute v1
      constraints:
@@ -24,10 +24,24 @@
        description: |
          Must be a valid Rackspace Cloud Server flavor for the region you have
          selected to deploy into.
-   coreos_image:
+   flavor_admin:
+     type: string
+     default: 4 GB General Purpose v1
+     constraints:
+     - allowed_values:
+       - 4 GB General Purpose v1
+       - 8 GB General Purpose v1
+       description: |
+         Must be a valid Rackspace Cloud Server flavor for the region you have
+         selected to deploy into.
+   coreos_image_cluster:
      type: string
      description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
      default: "97646707-08ba-4b9c-bd85-91e976ebcadf"
+   coreos_image_admin:
+     type: string
+     description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
+     default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
    git_command:
      type: string
      description: Git repo checkout command
@@ -43,7 +57,7 @@
    kubernetes_net_interface:
      type: string
      description: Host network interface for which Kubernetes' overlay will operate over
-     default: "eth2"
+     default: "eth1"
 
  resources:
 
@@ -54,8 +68,8 @@
      type: OS::Nova::Server
      properties:
        key_name: { get_param: keyname }
-       image: { get_param: coreos_image }
-       flavor: { get_param: flavor }
+       image: { get_param: coreos_image_admin }
+       flavor: { get_param: flavor_admin }
        name: "discovery"
        user_data_format: RAW
        config_drive: "true"
@@ -114,8 +128,8 @@
      type: OS::Nova::Server
      properties:
        key_name: { get_param: keyname }
-       image: { get_param: coreos_image }
-       flavor: { get_param: flavor }
+       image: { get_param: coreos_image_admin }
+       flavor: { get_param: flavor_admin }
        name: "overlord"
        user_data_format: RAW
        config_drive: "true"
@@ -188,8 +202,8 @@
      type: OS::Nova::Server
      properties:
        key_name: { get_param: keyname }
-       image: { get_param: coreos_image }
-       flavor: { get_param: flavor }
+       image: { get_param: coreos_image_cluster }
+       flavor: { get_param: flavor_cluster }
        name: "kubernetes_master"
        networks:
        - uuid: "00000000-0000-0000-0000-000000000000"
@@ -263,7 +277,7 @@
                      Requires=network-online.target etcd.service flannel-install.service
 
                      [Service]
-                     ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "vxlan"}}'
+                     ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "udp"}}'
                      ExecStart=/opt/bin/flanneld -iface=%kubernetes_net_interface%
                      Restart=always
                      RestartSec=5s
@@ -305,8 +319,8 @@
          type: OS::Nova::Server
          properties:
            key_name: { get_param: keyname }
-           image: { get_param: coreos_image }
-           flavor: { get_param: flavor }
+           image: { get_param: coreos_image_cluster }
+           flavor: { get_param: flavor_cluster }
            name: kubernetes_minion_%index%
            networks:
            - uuid: "00000000-0000-0000-0000-000000000000"
