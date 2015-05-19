@@ -215,6 +215,11 @@
            template: |
              #cloud-config
              write_files:
+               - path: /etc/environment
+                 permissions: '0755'
+                 content: |
+                   COREOS_PUBLIC_IPV4=%public_ip%
+                   COREOS_PRIVATE_IPV4=%private_ip%
                - path: /run/get_discovery_ip_port.sh
                  permissions: '0755'
                  content: |
@@ -306,6 +311,8 @@
                      [Install]
                      WantedBy=multi-user.target
            params:
+             "%private_ip%": { get_attr: [kubernetes_master, networks, private, 0] }
+             "%public_ip%": { get_attr: [kubernetes_master, networks, public, 0] }
              "%discovery%": { get_attr: [discovery, networks, private, 0] }
              "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
              "%flannel_url%": { get_param: flannel_url }
@@ -331,6 +338,12 @@
              str_replace:
                template: |
                  #cloud-config
+                 write_files:
+                   - path: /etc/environment
+                     permissions: '0755'
+                     content: |
+                       COREOS_PUBLIC_IPV4=%public_ip%
+                       COREOS_PRIVATE_IPV4=%private_ip%
                  coreos:
                    etcd:
                      name: kubernetes_minion_%index%
@@ -398,6 +411,8 @@
                          [Install]
                          WantedBy=multi-user.target
                params:
+                 "%private_ip%": { get_attr: [ {get_resource: kubernetes_minions}, networks, private, 0] }
+                 "%public_ip%": { get_attr: [ {get_resource: kubernetes_minions}, networks, public, 0] }
                  "%discovery%": { get_attr: [discovery, networks, private, 0] }
                  "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
                  "%flannel_url%": { get_param: flannel_url }
