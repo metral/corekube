@@ -57,7 +57,7 @@
    kubernetes_net_interface:
      type: string
      description: Host network interface for which Kubernetes' overlay will operate over
-     default: "eth1"
+     default: "bond0.401"
 
  resources:
 
@@ -215,11 +215,6 @@
            template: |
              #cloud-config
              write_files:
-               - path: /etc/environment
-                 permissions: '0755'
-                 content: |
-                   COREOS_PUBLIC_IPV4=%public_ip%
-                   COREOS_PRIVATE_IPV4=%private_ip%
                - path: /run/get_discovery_ip_port.sh
                  permissions: '0755'
                  content: |
@@ -245,6 +240,15 @@
                units:
                  - name: etcd.service
                    command: start
+                 - name: create-etcd-env.service
+                   command: start
+                   content: |
+                     [Unit]
+                     Description=creates etcd environment
+
+                     [Service]
+                     Type=oneshot
+                     ExecStart=/bin/sh -c "sed -i \"s/=:/=`ifconfig bond0.401 | grep 'inet ' | awk '{print $2}'`:/\" /run/systemd/system/etcd.service.d/20-cloudinit.conf && systemctl daemon-reload"
                  - name: fleet.service
                    command: start
                  - name: get_discovery_ip_port.service
@@ -311,8 +315,6 @@
                      [Install]
                      WantedBy=multi-user.target
            params:
-             "%private_ip%": { get_attr: [kubernetes_master, networks, private, 0] }
-             "%public_ip%": { get_attr: [kubernetes_master, networks, public, 0] }
              "%discovery%": { get_attr: [discovery, networks, private, 0] }
              "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
              "%flannel_url%": { get_param: flannel_url }
@@ -338,12 +340,6 @@
              str_replace:
                template: |
                  #cloud-config
-                 write_files:
-                   - path: /etc/environment
-                     permissions: '0755'
-                     content: |
-                       COREOS_PUBLIC_IPV4=%public_ip%
-                       COREOS_PRIVATE_IPV4=%private_ip%
                  coreos:
                    etcd:
                      name: kubernetes_minion_%index%
@@ -359,6 +355,15 @@
                    units:
                      - name: etcd.service
                        command: start
+                     - name: create-etcd-env.service
+                       command: start
+                       content: |
+                         [Unit]
+                         Description=creates etcd environment
+
+                         [Service]
+                         Type=oneshot
+                         ExecStart=/bin/sh -c "sed -i \"s/=:/=`ifconfig bond0.401 | grep 'inet ' | awk '{print $2}'`:/\" /run/systemd/system/etcd.service.d/20-cloudinit.conf && systemctl daemon-reload"
                      - name: fleet.service
                        command: start
                      - name: flannel-install.service
@@ -411,8 +416,6 @@
                          [Install]
                          WantedBy=multi-user.target
                params:
-                 "%private_ip%": { get_attr: [ {get_resource: kubernetes_minions}, networks, private, 0] }
-                 "%public_ip%": { get_attr: [ {get_resource: kubernetes_minions}, networks, public, 0] }
                  "%discovery%": { get_attr: [discovery, networks, private, 0] }
                  "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
                  "%flannel_url%": { get_param: flannel_url }
