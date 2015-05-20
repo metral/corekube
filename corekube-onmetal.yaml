@@ -21,8 +21,10 @@
      constraints:
      - allowed_values:
        - OnMetal Compute v1
+       - OnMetal IO v1
+       - OnMetal Memory v1 
        description: |
-         Must be a valid Rackspace Cloud Server flavor for the region you have
+         Must be a valid Rackspace OnMetal flavor for the region you have
          selected to deploy into.
    flavor_discovery:
      type: string
@@ -72,9 +74,12 @@
      type: string
      description: Host network interface for which Kubernetes' overlay will operate over
      default: "bond0.401"
+   cluster_subnet:
+     type: string
+     description: cluster subnet that containers will operate over
+     default: "10.244.0.0/15"
 
  resources:
-
    coreos_cluster_uuid:
      type: OS::Heat::RandomString
 
@@ -302,7 +307,7 @@
                      Requires=network-online.target etcd.service flannel-install.service
 
                      [Service]
-                     ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "udp"}}'
+                     ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"%cluster_subnet%", "Backend": {"Type": "udp"}}'
                      ExecStart=/opt/bin/flanneld -iface=%kubernetes_net_interface%
                      Restart=always
                      RestartSec=5s
@@ -335,6 +340,7 @@
              "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
              "%flannel_url%": { get_param: flannel_url }
              "%kubernetes_net_interface%": { get_param: kubernetes_net_interface }
+             "%cluster_subnet%": { get_param: cluster_subnet }
 
    kubernetes_minions:
      type: "OS::Heat::ResourceGroup"
