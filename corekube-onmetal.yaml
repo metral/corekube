@@ -24,7 +24,17 @@
        description: |
          Must be a valid Rackspace Cloud Server flavor for the region you have
          selected to deploy into.
-   flavor_admin:
+   flavor_discovery:
+     type: string
+     default: 4 GB General Purpose v1
+     constraints:
+     - allowed_values:
+       - 4 GB General Purpose v1
+       - 8 GB General Purpose v1
+       description: |
+         Must be a valid Rackspace Cloud Server flavor for the region you have
+         selected to deploy into.
+   flavor_overlord:
      type: string
      default: 4 GB General Purpose v1
      constraints:
@@ -38,7 +48,11 @@
      type: string
      description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
      default: "97646707-08ba-4b9c-bd85-91e976ebcadf"
-   coreos_image_admin:
+   coreos_image_discovery:
+     type: string
+     description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
+     default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
+   coreos_image_overlord:
      type: string
      description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
      default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
@@ -68,8 +82,8 @@
      type: OS::Nova::Server
      properties:
        key_name: { get_param: keyname }
-       image: { get_param: coreos_image_admin }
-       flavor: { get_param: flavor_admin }
+       image: { get_param: coreos_image_discovery }
+       flavor: { get_param: flavor_discovery }
        name: "discovery"
        user_data_format: RAW
        config_drive: "true"
@@ -128,8 +142,8 @@
      type: OS::Nova::Server
      properties:
        key_name: { get_param: keyname }
-       image: { get_param: coreos_image_admin }
-       flavor: { get_param: flavor_admin }
+       image: { get_param: coreos_image_overlord }
+       flavor: { get_param: flavor_overlord }
        name: "overlord"
        user_data_format: RAW
        config_drive: "true"
@@ -245,10 +259,12 @@
                    content: |
                      [Unit]
                      Description=creates etcd environment
+                     After=network-online.target
+                     Requires=network-online.target
 
                      [Service]
                      Type=oneshot
-                     ExecStart=/bin/sh -c "sed -i \"s/=:/=`ifconfig bond0.401 | grep 'inet ' | awk '{print $2}'`:/\" /run/systemd/system/etcd.service.d/20-cloudinit.conf && systemctl daemon-reload"
+                     ExecStart=/bin/sh -c "sed -i \"s/=:/=`ifconfig %kubernetes_net_interface% | grep 'inet ' | awk '{print $2}'`:/\" /run/systemd/system/etcd.service.d/20-cloudinit.conf && systemctl daemon-reload"
                  - name: fleet.service
                    command: start
                  - name: get_discovery_ip_port.service
@@ -360,10 +376,12 @@
                        content: |
                          [Unit]
                          Description=creates etcd environment
+                         After=network-online.target
+                         Requires=network-online.target
 
                          [Service]
                          Type=oneshot
-                         ExecStart=/bin/sh -c "sed -i \"s/=:/=`ifconfig bond0.401 | grep 'inet ' | awk '{print $2}'`:/\" /run/systemd/system/etcd.service.d/20-cloudinit.conf && systemctl daemon-reload"
+                         ExecStart=/bin/sh -c "sed -i \"s/=:/=`ifconfig %kubernetes_net_interface% | grep 'inet ' | awk '{print $2}'`:/\" /run/systemd/system/etcd.service.d/20-cloudinit.conf && systemctl daemon-reload"
                      - name: fleet.service
                        command: start
                      - name: flannel-install.service
