@@ -48,8 +48,8 @@
          selected to deploy into.
    coreos_image_cluster:
      type: string
-     description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
-     default: "97646707-08ba-4b9c-bd85-91e976ebcadf"
+     description: Rackspace OnMetal CoreOS Stable (633.1.0) UUID
+     default: "84997bd3-7cdf-4405-8075-137d631f24b4"
    coreos_image_discovery:
      type: string
      description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
