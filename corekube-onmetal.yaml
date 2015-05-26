@@ -18,7 +18,7 @@
 
  - label: Kubernetes Data Plane 
    parameters:
-   - flavor_minions:
+   - flavor_minions
    - coreos_image_minions
    - kubernetes_net_interface
 
