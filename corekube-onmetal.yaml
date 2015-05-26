@@ -15,7 +15,7 @@
    keyname:
      type: string
      description: Name of keypair to be used for compute instance
-   flavor_cluster:
+   flavor_minions:
      type: string
      default: OnMetal Compute v1
      constraints:
@@ -46,7 +46,17 @@
        description: |
          Must be a valid Rackspace Cloud Server flavor for the region you have
          selected to deploy into.
-   coreos_image_cluster:
+   flavor_master:
+     type: string
+     default: 4 GB General Purpose v1
+     constraints:
+     - allowed_values:
+       - 4 GB General Purpose v1
+       - 8 GB General Purpose v1
+       description: |
+         Must be a valid Rackspace Cloud Server flavor for the region you have
+         selected to deploy into.
+   coreos_image_minions:
      type: string
      description: Rackspace OnMetal CoreOS Stable (633.1.0) UUID
      default: "84997bd3-7cdf-4405-8075-137d631f24b4"
@@ -55,6 +65,10 @@
      description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
      default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
    coreos_image_overlord:
+     type: string
+     description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
+     default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
+   coreos_image_master:
      type: string
      description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
      default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
@@ -221,8 +235,8 @@
      type: OS::Nova::Server
      properties:
        key_name: { get_param: keyname }
-       image: { get_param: coreos_image_cluster }
-       flavor: { get_param: flavor_cluster }
+       image: { get_param: coreos_image_master }
+       flavor: { get_param: flavor_master}
        name: "kubernetes_master"
        networks:
        - uuid: "00000000-0000-0000-0000-000000000000"
@@ -350,8 +364,8 @@
          type: OS::Nova::Server
          properties:
            key_name: { get_param: keyname }
-           image: { get_param: coreos_image_cluster }
-           flavor: { get_param: flavor_cluster }
+           image: { get_param: coreos_image_minions }
+           flavor: { get_param: flavor_minions}
            name: kubernetes_minion_%index%
            networks:
            - uuid: "00000000-0000-0000-0000-000000000000"
