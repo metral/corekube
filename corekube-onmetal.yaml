@@ -2,6 +2,26 @@
 
  description: Deploy a CoreOS cluster that operates a Kubernetes cluster
 
+ parameter_groups:
+ - label: Kubernetes Control Plane
+   parameters:
+   - flavor_discovery
+   - coreos_image_discovery
+   - flavor_overlord
+   - coreos_image_overlord
+   - flavor_master
+   - coreos_image_master
+   - discovery_net_interface
+   - flannel_url
+   - cluster_subnet
+   - keyname
+
+ - label: Kubernetes Data Plane 
+   parameters:
+   - flavor_minions:
+   - coreos_image_minions
+   - kubernetes_net_interface
+
  parameters:
    kubernetes_minion_count:
      description: Number of CoreOS machines to deploy as Kubernetes Minion
