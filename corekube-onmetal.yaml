@@ -2,6 +2,36 @@
 
  description: Deploy a CoreOS cluster that operates a Kubernetes cluster
 
+ parameter_groups:
+ - label: Discovery Server
+   parameters:
+   - flavor_discovery
+   - coreos_image_discovery
+   - discovery_net_interface
+
+ - label: Overlord Server
+   parameters:
+   - flavor_overlord
+   - coreos_image_overlord
+
+ - label: Master Server
+   parameters:
+   - flavor_master
+   - coreos_image_master
+   - master_net_interface
+
+ - label: Minion Servers
+   parameters:
+   - flavor_minions
+   - coreos_image_minions
+   - minion_net_interface
+
+ - label: Network and Access Configuration 
+   parameters:
+   - flannel_url
+   - cluster_subnet
+   - keyname
+
  parameters:
    kubernetes_minion_count:
      description: Number of CoreOS machines to deploy as Kubernetes Minion
@@ -15,7 +45,7 @@
    keyname:
      type: string
      description: Name of keypair to be used for compute instance
-   flavor_cluster:
+   flavor_minions:
      type: string
      default: OnMetal Compute v1
      constraints:
@@ -46,7 +76,17 @@
        description: |
          Must be a valid Rackspace Cloud Server flavor for the region you have
          selected to deploy into.
-   coreos_image_cluster:
+   flavor_master:
+     type: string
+     default: 4 GB General Purpose v1
+     constraints:
+     - allowed_values:
+       - 4 GB General Purpose v1
+       - 8 GB General Purpose v1
+       description: |
+         Must be a valid Rackspace Cloud Server flavor for the region you have
+         selected to deploy into.
+   coreos_image_minions:
      type: string
      description: Rackspace OnMetal CoreOS Stable (633.1.0) UUID
      default: "84997bd3-7cdf-4405-8075-137d631f24b4"
@@ -55,6 +95,10 @@
      description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
      default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
    coreos_image_overlord:
+     type: string
+     description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
+     default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
+   coreos_image_master:
      type: string
      description: Rackspace Cloud Servers CoreOS Stable (633.1.0) UUID
      default: "a41d8b7c-d41b-4369-a180-0734f3b1cd8c"
@@ -70,7 +114,15 @@
      type: string
      description: Host network interface for which the Discovery node will operate over
      default: "eth1"
-   kubernetes_net_interface:
+   overlord_net_interface:
+     type: string
+     description: Host network interface for which the Discovery node will operate over
+     default: "eth1"
+   master_net_interface:
+     type: string
+     description: Host network interface for which the Discovery node will operate over
+     default: "eth1"
+   minion_net_interface:
      type: string
      description: Host network interface for which Kubernetes' overlay will operate over
      default: "bond0.401"
@@ -221,8 +273,8 @@
      type: OS::Nova::Server
      properties:
        key_name: { get_param: keyname }
-       image: { get_param: coreos_image_cluster }
-       flavor: { get_param: flavor_cluster }
+       image: { get_param: coreos_image_master }
+       flavor: { get_param: flavor_master}
        name: "kubernetes_master"
        networks:
        - uuid: "00000000-0000-0000-0000-000000000000"
@@ -339,7 +391,7 @@
              "%discovery%": { get_attr: [discovery, networks, private, 0] }
              "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
              "%flannel_url%": { get_param: flannel_url }
-             "%kubernetes_net_interface%": { get_param: kubernetes_net_interface }
+             "%kubernetes_net_interface%": { get_param: master_net_interface }
              "%cluster_subnet%": { get_param: cluster_subnet }
 
    kubernetes_minions:
@@ -350,8 +402,8 @@
          type: OS::Nova::Server
          properties:
            key_name: { get_param: keyname }
-           image: { get_param: coreos_image_cluster }
-           flavor: { get_param: flavor_cluster }
+           image: { get_param: coreos_image_minions }
+           flavor: { get_param: flavor_minions}
            name: kubernetes_minion_%index%
            networks:
            - uuid: "00000000-0000-0000-0000-000000000000"
@@ -443,7 +495,7 @@
                  "%discovery%": { get_attr: [discovery, networks, private, 0] }
                  "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
                  "%flannel_url%": { get_param: flannel_url }
-                 "%kubernetes_net_interface%": { get_param: kubernetes_net_interface }
+                 "%kubernetes_net_interface%": { get_param: minion_net_interface }
 
  outputs:
    discovery_ip:
