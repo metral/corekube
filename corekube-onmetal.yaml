@@ -353,7 +353,7 @@
              "%discovery%": { get_attr: [discovery, networks, private, 0] }
              "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
              "%flannel_url%": { get_param: flannel_url }
-             "%kubernetes_net_interface%": { get_param: kubernetes_net_interface }
+             "%kubernetes_net_interface%": { get_param: discovery_net_interface }
              "%cluster_subnet%": { get_param: cluster_subnet }
 
    kubernetes_minions:
