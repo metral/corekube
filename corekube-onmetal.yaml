@@ -3,24 +3,34 @@
  description: Deploy a CoreOS cluster that operates a Kubernetes cluster
 
  parameter_groups:
- - label: Kubernetes Control Plane
+ - label: Discovery Server
    parameters:
    - flavor_discovery
    - coreos_image_discovery
+   - discovery_net_interface
+
+ - label: Overlord Server
+   parameters:
    - flavor_overlord
    - coreos_image_overlord
+
+ - label: Master Server
+   parameters:
    - flavor_master
    - coreos_image_master
-   - discovery_net_interface
-   - flannel_url
-   - cluster_subnet
-   - keyname
+   - master_net_interface
 
- - label: Kubernetes Data Plane 
+ - label: Minion Servers
    parameters:
    - flavor_minions
    - coreos_image_minions
-   - kubernetes_net_interface
+   - minion_net_interface
+
+ - label: Network and Access Configuration 
+   parameters:
+   - flannel_url
+   - cluster_subnet
+   - keyname
 
  parameters:
    kubernetes_minion_count:
@@ -104,7 +114,15 @@
      type: string
      description: Host network interface for which the Discovery node will operate over
      default: "eth1"
-   kubernetes_net_interface:
+   overlord_net_interface:
+     type: string
+     description: Host network interface for which the Discovery node will operate over
+     default: "eth1"
+   master_net_interface:
+     type: string
+     description: Host network interface for which the Discovery node will operate over
+     default: "eth1"
+   minion_net_interface:
      type: string
      description: Host network interface for which Kubernetes' overlay will operate over
      default: "bond0.401"
@@ -373,7 +391,7 @@
              "%discovery%": { get_attr: [discovery, networks, private, 0] }
              "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
              "%flannel_url%": { get_param: flannel_url }
-             "%kubernetes_net_interface%": { get_param: discovery_net_interface }
+             "%kubernetes_net_interface%": { get_param: master_net_interface }
              "%cluster_subnet%": { get_param: cluster_subnet }
 
    kubernetes_minions:
@@ -477,7 +495,7 @@
                  "%discovery%": { get_attr: [discovery, networks, private, 0] }
                  "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
                  "%flannel_url%": { get_param: flannel_url }
-                 "%kubernetes_net_interface%": { get_param: kubernetes_net_interface }
+                 "%kubernetes_net_interface%": { get_param: minion_net_interface }
 
  outputs:
    discovery_ip:
