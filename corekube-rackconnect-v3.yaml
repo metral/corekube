@@ -1,6 +1,9 @@
 heat_template_version: 2013-05-23
 
-description: Deploy a CoreOS cluster that operates a Kubernetes cluster
+description: >
+  Deploy Kubernetes on a CoreOS cluster that operates on
+  Rackspace's RackConnect v3
+  Maintainer - Cedric Hauber <hauber.c@gmail.com> | Github: @cedbossneo
 
 parameters:
  kubernetes_minion_count:

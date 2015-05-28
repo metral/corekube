@@ -1,6 +1,9 @@
  heat_template_version: 2013-05-23
 
- description: Deploy a CoreOS cluster that operates a Kubernetes cluster
+ description: >
+   Deploy Kubernetes on a CoreOS cluster that operates on
+   Rackspace's Public Cloud (Virtual Machine/Server)
+   Maintainer - Mike Metral <metral@gmail.com> | Github: @metral
 
  parameters:
    kubernetes_minion_count:
