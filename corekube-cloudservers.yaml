@@ -38,8 +38,8 @@
      default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 96574056d0cc7ad8e52228df76374cb3537af8ba"
    flannel_url:
      type: string
-     description: Flannel (0.4.0) Binary URL
-     default: "http://a26736f09be9784cb06f-8d30bd32035bc1ac3e9215d2d6eedfc5.r53.cf1.rackcdn.com/flanneld"
+     description: Flannel (0.4.1) Binary URL
+     default: "http://e01077b4bdde5edfe351-04b5f9ae5ddc5d3cff2a91e8ef69f9f8.r64.cf1.rackcdn.com/flanneld"
    discovery_net_interface:
      type: string
      description: Host network interface for which the Discovery node will operate over
