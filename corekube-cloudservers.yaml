@@ -107,11 +107,11 @@
                      [Service]
                      EnvironmentFile=/run/IP
                      RestartSec=5s
-                     ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v2.0.9
+                     ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v2.0.11
                      ExecStart=/usr/bin/docker run -d --name discovery \
                        -p 2379:2379 -p 2380:2380 \
                        -v /usr/share/ca-certificates/:/etc/ssl/certs \
-                       --net host quay.io/coreos/etcd:v2.0.9 -name discovery \
+                       --net host quay.io/coreos/etcd:v2.0.11 -name discovery \
                        -initial-advertise-peer-urls http://${IP}:2380,http://${IP}:7001 \
                        -listen-peer-urls http://${IP}:2380,http://${IP}:7001 \
                        -initial-cluster discovery=http://${IP}:2380,discovery=http://${IP}:7001 \
