@@ -30,16 +30,16 @@
          Must be a valid flavor
    coreos_image:
      type: string
-     description: Rackspace Cloud Servers CoreOS Alpha (695.0.0)
+     description: Rackspace Cloud Servers CoreOS Alpha (735.0.0)
      default: "CoreOS"
    git_command:
      type: string
      description: Git repo checkout command
-     default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 2abe58e551d98deb48e71b1036ddd8bcf5cde0f4"
+     default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 921619ef475ab16be364c525287a0d54a160cc34"
    flannel_url:
      type: string
      description: Flannel Binary URL
-     default: "http://e01077b4bdde5edfe351-04b5f9ae5ddc5d3cff2a91e8ef69f9f8.r64.cf1.rackcdn.com/flanneld"
+     default: "http://fe6e6aca3f67c41ad91b-2cf70b2448bc75d5450bec49aeeb0a55.r21.cf1.rackcdn.com/flanneld"
    discovery_net_interface:
      type: string
      description: Host network interface for which the Discovery node will operate over
@@ -202,11 +202,11 @@
                      [Service]
                      EnvironmentFile=/run/IP
                      RestartSec=5s
-                     ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v2.0.11
+                     ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v2.0.13
                      ExecStart=/usr/bin/docker run -d --name discovery \
                        -p 2379:2379 -p 2380:2380 \
                        -v /usr/share/ca-certificates/:/etc/ssl/certs \
-                       --net host quay.io/coreos/etcd:v2.0.11 -name discovery \
+                       --net host quay.io/coreos/etcd:v2.0.13 -name discovery \
                        -initial-advertise-peer-urls http://${IP}:2380,http://${IP}:7001 \
                        -listen-peer-urls http://${IP}:2380,http://${IP}:7001 \
                        -initial-cluster discovery=http://${IP}:2380,discovery=http://${IP}:7001 \
