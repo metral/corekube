@@ -120,7 +120,7 @@ Once each CoreOS machine has booted & connected their etcd client to the private
 
 In order to understand the proposed networking architecture described, we must first understand at a high-level how networking works with regards to Docker:
 
-* By default, Docker creates a virtual interface, specically a virtual Ethernet bridge (aka a linux bridge), named docker0 on the host machine
+* By default, Docker creates a virtual interface, specifically a virtual Ethernet bridge (aka a linux bridge), named docker0 on the host machine
 * If docker0 does not have an address and subnet, which by default it does not, Docker randomly chooses an address and subnet from the private range defined by RFC 1918 that are not in use on the host machine, and assigns it to docker0.
 * Because docker0 is a linux bridge, it automatically forwards packets between any other network interfaces that are attached to it
 * So, every time Docker creates a container, it creates a pair of “peer” interfaces, specifically a virtual ethernet device (aka a veth device) which operate like opposite ends of a pipe - this lets containers communicate both with the host machine and with each other.
