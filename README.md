@@ -350,3 +350,10 @@ Follow this set of steps to get you started:
   to this point, so disregard the setup cluster instructions (Step 0) in the Kubernetes
   examples
 * After you complete the deployment of the guestbook, it could take a couple of minutes before the frontend nodes are accessible, so be patient.
+
+
+## SkyDNS
+
+SkyDNS has been integrated into Corekube and is automatically available &
+accessible within the Kubernetes cluster. To see how it was configured, view
+the [systemd unit file used to deploy it](https://github.com/metral/overlord/tree/master/examples) and for information on how to use it, please check out the [Kubernetes docs](https://github.com/kubernetes/kubernetes/tree/master/cluster/addons/dns)
