@@ -30,16 +30,20 @@
          selected to deploy into.
    coreos_image:
      type: string
-     description: Rackspace Cloud Servers CoreOS Stable (735.0.0) UUID
-     default: "28555e09-5639-43f9-b64b-9c98c78520ad"
+     description: Rackspace Cloud Servers CoreOS Stable (808.0.0) UUID
+     default: "2c12f6da-8540-40bc-b974-9a72040173e0"
    git_command:
      type: string
      description: Git repo checkout command
      default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 921619ef475ab16be364c525287a0d54a160cc34"
    flannel_url:
      type: string
-     description: Flannel (0.5.1) Binary URL
-     default: "http://fe6e6aca3f67c41ad91b-2cf70b2448bc75d5450bec49aeeb0a55.r21.cf1.rackcdn.com/flanneld"
+     description: Flannel (0.5.3) Binary URL
+     default: "http://e0c2ab32810737fd07e4-700417495149341ce4d5f2e85f203802.r26.cf1.rackcdn.com/flanneld"
+   private_discovery_etcd_version:
+     type: string
+     description: Version of etcd used for Private Discovery node
+     default: "2.2.0"
    discovery_net_interface:
      type: string
      description: Host network interface for which the Discovery node will operate over
@@ -107,11 +111,11 @@
                      [Service]
                      EnvironmentFile=/run/IP
                      RestartSec=5s
-                     ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v2.0.13
+                     ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcd:v%private_discovery_etcd_version%
                      ExecStart=/usr/bin/docker run -d --name discovery \
                        -p 2379:2379 -p 2380:2380 \
                        -v /usr/share/ca-certificates/:/etc/ssl/certs \
-                       --net host quay.io/coreos/etcd:v2.0.13 -name discovery \
+                       --net host quay.io/coreos/etcd:v%private_discovery_etcd_version% -name discovery \
                        -initial-advertise-peer-urls http://${IP}:2380,http://${IP}:7001 \
                        -listen-peer-urls http://${IP}:2380,http://${IP}:7001 \
                        -initial-cluster discovery=http://${IP}:2380,discovery=http://${IP}:7001 \
@@ -119,6 +123,7 @@
                        -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001
            params:
              "%discovery_net_interface%": { get_param: discovery_net_interface }
+             "%private_discovery_etcd_version%": { get_param: private_discovery_etcd_version}
 
    overlord:
      type: OS::Nova::Server

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.0.0
+VERSION=1.0.6
 
 git clone https://github.com/GoogleCloudPlatform/kubernetes
 pushd kubernetes
