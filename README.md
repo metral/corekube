@@ -1,7 +1,7 @@
 ## Corekube
 <img src="https://travis-ci.org/metral/corekube.svg?branch=master"></p>
 
-##### Last Major Update: 10/07/2015
+##### Last Major Update: 11/24/2015
 
 #### [Latest Release](https://github.com/metral/corekube/releases/latest)
 
@@ -24,7 +24,7 @@ The main pillars of Corekube's mission can be categorized into the following:
 |     Docker     |                           1.8.2                          |
 |  Etcd (Client) |                           0.4.9/2.2.0                    |
 | Fleet (Client) |                           0.11.5                          |
-|     Flannel*   |                           0.5.3                          |
+|     Flannel*   |                           0.5.5                          |
 
 *Note: Flannel is running on all Kubenetes nodes only. It is not installed nor configured on neither the Discovery or Overlord nodes.
 
@@ -33,7 +33,7 @@ The main pillars of Corekube's mission can be categorized into the following:
 
 |    **Tool**    |                                      **Version**                                     |
 |:----------:|:--------------------------------------------------------------------------------:|
-| Kubernetes | [1.0.6](https://github.com/GoogleCloudPlatform/kubernetes/releases/tag/v1.0.6) |
+| Kubernetes | [1.1.2](https://github.com/kubernetes/kubernetes/releases/tag/v1.1.2) |
 
 **Overlord** - Deployment logic that stands up a Kubenetes cluster
 

@@ -38,12 +38,12 @@
      default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 1f37433090ec322df4cdde10ebe6ab7b6387dc8b"
    flannel_url:
      type: string
-     description: Flannel (0.5.3) Binary URL
-     default: "http://e0c2ab32810737fd07e4-700417495149341ce4d5f2e85f203802.r26.cf1.rackcdn.com/flanneld"
+     description: Flannel (0.5.5) Binary URL
+     default: "http://0afbabe78c1b1691fad4-21af6827a69c3ad910ccdb6595a59d19.r49.cf1.rackcdn.com/flanneld"
    private_discovery_etcd_version:
      type: string
      description: Version of etcd used for Private Discovery node
-     default: "2.2.0"
+     default: "2.2.2"
    discovery_net_interface:
      type: string
      description: Host network interface for which the Discovery node will operate over
