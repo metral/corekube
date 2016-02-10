@@ -30,12 +30,12 @@
          selected to deploy into.
    coreos_image:
      type: string
-     description: Rackspace Cloud Servers CoreOS Stable (808.0.0) UUID
-     default: "2c12f6da-8540-40bc-b974-9a72040173e0"
+     description: Rackspace Cloud Servers CoreOS Stable (835.9.0) UUID
+     default: "40155f16-21d4-4ac1-ad65-c409d94b8c7c"
    git_command:
      type: string
      description: Git repo checkout command
-     default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 66a17cc7ab1713b73dc7826c9494e60ea68ee5f5"
+     default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 0b4ca77c14a16c523aa7d01c1a444231b57eb5a6"
    flannel_url:
      type: string
      description: Flannel (0.5.5) Binary URL
@@ -139,6 +139,15 @@
          str_replace:
            template: |
              #cloud-config
+             write_files:
+               - path: /run/get_discovery_ip_port.sh
+                 permissions: '0755'
+                 content: |
+                   #!/bin/bash
+                   # Sets up environment file with the discovery node's IP &
+                   # port so that redeploy.sh has it
+                   /usr/bin/cat /run/systemd/system/etcd.service.d/20-cloudinit.conf | /usr/bin/grep -i discovery | /usr/bin/cut -f3 -d"=" | /usr/bin/awk -F '/v' '{print $1}' > /run/discovery_ip_port
+                   /usr/bin/sed -i 's/^/DISCOVERY_IP_PORT=/' /run/discovery_ip_port
              coreos:
                etcd:
                  name: overlord
@@ -180,6 +189,18 @@
                      ExecStart=/usr/bin/fleet
                      Restart=always
                      RestartSec=10s
+                 - name: get_discovery_ip_port.service
+                   runtime: true
+                   command: start
+                   content: |
+                     # Runs get_discovery_ip_port.sh to have discovery IP &
+                     # port ready for consumption by reploy.sh when creating
+                     [Unit]
+                     After=network-online.target
+                     Requires=network-online.target
+
+                     [Service]
+                     ExecStart=/usr/bin/bash /run/get_discovery_ip_port.sh
                  - name: overlord.service
                    command: start
                    content: |
@@ -280,34 +301,10 @@
                      Requires=network-online.target etcd.service flannel-install.service
 
                      [Service]
-                     ExecStartPre=/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "vxlan"}}'
-                     ExecStart=/opt/bin/flanneld -iface=%kubernetes_net_interface%
+                     ExecStartPre=/usr/bin/etcdctl --endpoint=%discovery%:4001 mk /coreos.com/network/config '{"Network":"10.244.0.0/15", "Backend": {"Type": "vxlan"}}'
+                     ExecStart=/opt/bin/flanneld -etcd-endpoints=http://%discovery%:4001 -iface=%kubernetes_net_interface%
                      Restart=always
                      RestartSec=5s
-                 - name: flannel-env.path
-                   command: start
-                   content: |
-                     # Ensures flannel env vars are set to use with Docker
-                     [Path]
-                     PathExists=/run/flannel/subnet.env
-                     Unit=docker.service
-                 - name: docker.service
-                   command: start
-                   content: |
-                     # Starts new docker server that uses flannel 
-                     [Unit]
-                     After=flannel-env.path network-online.target flannel.service
-                     Requires=flannel-env.path network-online.target flannel.service
-                     Description=Docker Application Container Engine
-
-                     [Service]
-                     EnvironmentFile=/run/flannel/subnet.env
-                     ExecStartPre=/bin/mount --make-rprivate /
-                     ExecStartPre=/usr/bin/systemctl kill docker.service
-                     ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
-
-                     [Install]
-                     WantedBy=multi-user.target
            params:
              "%discovery%": { get_attr: [discovery, networks, private, 0] }
              "%uuid%": { get_attr: [coreos_cluster_uuid, value] }
@@ -374,7 +371,7 @@
                          Requires=etcd.service flannel-install.service
 
                          [Service]
-                         ExecStart=/opt/bin/flanneld -iface=%kubernetes_net_interface%
+                         ExecStart=/opt/bin/flanneld -etcd-endpoints=http://%discovery%:4001 -iface=%kubernetes_net_interface%
                          Restart=always
                          RestartSec=5s
                      - name: flannel-env.path
