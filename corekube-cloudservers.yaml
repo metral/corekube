@@ -35,7 +35,7 @@
    git_command:
      type: string
      description: Git repo checkout command
-     default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf 3c90a87d4c5bc1605033799394e2b16f5a61b59f"
+     default: "/usr/bin/git clone https://github.com/metral/overlord ; /usr/bin/git -C overlord checkout -qf cc5a106ae7a577aa8ee1c7c1a6d1f1e1365fb4b5"
    flannel_url:
      type: string
      description: Flannel (0.5.5) Binary URL

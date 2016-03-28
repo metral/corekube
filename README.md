@@ -1,7 +1,7 @@
 ## Corekube
 <img src="https://travis-ci.org/metral/corekube.svg?branch=master"></p>
 
-##### Last Major Update: 02/10/2016
+##### Last Major Update: 03/28/2016
 
 #### [Latest Release](https://github.com/metral/corekube/releases/latest)
 
@@ -33,7 +33,7 @@ The main pillars of Corekube's mission can be categorized into the following:
 
 |    **Tool**    |                                      **Version**                                     |
 |:----------:|:--------------------------------------------------------------------------------:|
-| Kubernetes | [1.1.7](https://github.com/kubernetes/kubernetes/releases/tag/v1.1.7) |
+| Kubernetes | [1.2.0](https://github.com/kubernetes/kubernetes/releases/tag/v1.2.0) |
 
 **Overlord** - Deployment logic that stands up a Kubenetes cluster
 
