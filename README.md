@@ -334,7 +334,7 @@ Follow this set of steps to get you started:
   state:
 
     ```
-    $ /opt/bin/kubectl get pods
+    $ /opt/bin/kubectl --server=0.0.0.0:8080 get pods
     ```
 
 * Once all the containers are running, hit the IP on the 10.244.xxx.yyy subnet
