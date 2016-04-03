@@ -604,6 +604,7 @@
                      ExecStartPre=/usr/bin/wget -q -N -P /opt/bin https://gist.githubusercontent.com/metral/0731466d7b35d4020dfd/raw/2fb0c5858e5eaefdf6b45b9492f1d6c75a7815b0/make-ca-cert.sh
                      ExecStartPre=/usr/bin/chmod u=rwx,go= /opt/bin/make-ca-cert.sh
                      ExecStart=/opt/bin/make-ca-cert.sh ${COREOS_PRIVATE_IPV4} IP:10.1.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.freeletics.local
+                     ExecStart=/opt/bin/make-ca-cert.sh ${COREOS_PRIVATE_IPV4} IP:10.1.0.1,IP:127.0.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.freeletics.local,DNS:localhost
                      RemainAfterExit=true
            params:
              "%discovery%": { get_attr: [discovery, networks, corekube, 0] }
