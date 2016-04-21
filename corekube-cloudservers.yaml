@@ -229,9 +229,9 @@
        flavor: { get_param: flavor }
        name: "kubernetes_master"
        networks:
-       - uuid: "00000000-0000-0000-0000-000000000000"
-       - uuid: "11111111-1111-1111-1111-111111111111"
-       - uuid: { get_resource: priv_network }
+       - network: "00000000-0000-0000-0000-000000000000"
+       - network: "11111111-1111-1111-1111-111111111111"
+       - network: { get_resource: priv_network }
        user_data_format: RAW
        config_drive: "true"
        user_data:
@@ -339,9 +339,9 @@
            flavor: { get_param: flavor }
            name: kubernetes_minion_%index%
            networks:
-           - uuid: "00000000-0000-0000-0000-000000000000"
-           - uuid: "11111111-1111-1111-1111-111111111111"
-           - uuid: { get_resource: priv_network }
+           - network: "00000000-0000-0000-0000-000000000000"
+           - network: "11111111-1111-1111-1111-111111111111"
+           - network: { get_resource: priv_network }
            user_data_format: RAW
            config_drive: "true"
            user_data:
