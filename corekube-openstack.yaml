@@ -31,7 +31,7 @@
    coreos_image:
      type: string
      description: Rackspace Cloud Servers CoreOS Stable (808.0.0) UUID
-     default: "CoreOS"
+     default: "CoreOS-Beta"
    git_command:
      type: string
      description: Git repo checkout command
@@ -59,7 +59,7 @@
    floating-network-id:
      type: string
      label: Floating Network ID
-     description: UUID of the external network. The private network created by this stack will route to this network. Any floating IP addresses needed by this stack will also route to this network. 
+     description: UUID of the external network. The private network created by this stack will route to this network. Any floating IP addresses needed by this stack will also route to this network.
 
  resources:
 
@@ -346,7 +346,7 @@
                      Type=oneshot
                      RemainAfterExit=yes
                      ExecStart=/run/setup_etcd_cloudinit_conf.sh
-                 - name: etcd.service 
+                 - name: etcd.service
                    command: start
                  - name: fleet.socket
                    command: start
@@ -492,9 +492,9 @@
                  content: |
                    #!/bin/bash
                    # Sets up environment file with the discovery node's IP &
-                   # port so # that in Overlode's template 
-                   # master-apiserver@.service it can be passed 
-                   # in as an argument 
+                   # port so # that in Overlode's template
+                   # master-apiserver@.service it can be passed
+                   # in as an argument
                    /usr/bin/cat /run/systemd/system/etcd.service.d/20-cloudinit.conf | /usr/bin/grep -i discovery | /usr/bin/cut -f3 -d"=" | /usr/bin/awk -F '/v' '{print $1}' > /run/discovery_ip_port
                    /usr/bin/sed -i 's/^/DISCOVERY_IP_PORT=/' /run/discovery_ip_port
              coreos:
@@ -574,7 +574,7 @@
                  - name: docker.service
                    command: start
                    content: |
-                     # Starts new docker server that uses flannel 
+                     # Starts new docker server that uses flannel
                      [Unit]
                      After=flannel-env.path network-online.target flannel.service
                      Requires=flannel-env.path network-online.target flannel.service
