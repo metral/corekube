@@ -20,10 +20,10 @@ The main pillars of Corekube's mission can be categorized into the following:
 
 |      **Tool**      |                          **Version**                         |
 |:--------------:|:--------------------------------------------------------:|
-|     CoreOS     | [835.9.0 (Alpha)](https://coreos.com/releases/#835.9.0) |
-|     Docker     |                           1.8.3                          |
-|  Etcd (Client) |                           0.4.9/2.2.0                    |
-| Fleet (Client) |                           0.11.5                          |
+|     CoreOS     | [1010.5.0 (Stable)](https://coreos.com/releases/#1010.5.0) |
+|     Docker     |                           1.10.3                          |
+|  Etcd (Client) |                           0.4.9/2.3.1                    |
+| Fleet (Client) |                           0.11.7                          |
 |     Flannel*   |                           0.5.5                          |
 
 *Note: Flannel is running on all Kubenetes Nodes(minions) only. It is not installed nor configured on neither the Discovery or Overlord.
@@ -33,7 +33,7 @@ The main pillars of Corekube's mission can be categorized into the following:
 
 |    **Tool**    |                                      **Version**                                     |
 |:----------:|:--------------------------------------------------------------------------------:|
-| Kubernetes | [1.2.0](https://github.com/kubernetes/kubernetes/releases/tag/v1.2.0) |
+| Kubernetes | [1.3.5](https://github.com/kubernetes/kubernetes/releases/tag/v1.3.5) |
 
 **Overlord** - Deployment logic that stands up a Kubenetes cluster
 

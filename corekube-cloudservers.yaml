@@ -30,8 +30,8 @@
          selected to deploy into.
    coreos_image:
      type: string
-     description: Rackspace Cloud Servers CoreOS Stable (835.9.0) UUID
-     default: "40155f16-21d4-4ac1-ad65-c409d94b8c7c"
+     description: Rackspace Cloud Servers CoreOS Stable (1010.5.0) UUID
+     default: "3eba4fbb-51da-4233-b699-8a4030561add"
    git_command:
      type: string
      description: Git repo checkout command
@@ -43,7 +43,7 @@
    private_discovery_etcd_version:
      type: string
      description: Version of etcd used for Private Discovery node
-     default: "2.2.2"
+     default: "2.3.1"
    discovery_net_interface:
      type: string
      description: Host network interface for which the Discovery node will operate over
