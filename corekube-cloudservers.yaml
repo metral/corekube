@@ -410,7 +410,7 @@
                          EnvironmentFile=/run/flannel/subnet.env
                          ExecStartPre=/bin/mount --make-rprivate /
                          ExecStartPre=/usr/bin/systemctl kill docker.service
-                         ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
+                         ExecStart=/usr/bin/docker daemon --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
 
                          [Install]
                          WantedBy=multi-user.target
