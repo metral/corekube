@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.3.5
+VERSION=1.4.0
 
 git clone https://github.com/kubernetes/kubernetes
 pushd kubernetes

@@ -33,7 +33,7 @@ The main pillars of Corekube's mission can be categorized into the following:
 
 |    **Tool**    |                                      **Version**                                     |
 |:----------:|:--------------------------------------------------------------------------------:|
-| Kubernetes | [1.3.5](https://github.com/kubernetes/kubernetes/releases/tag/v1.3.5) |
+| Kubernetes | [1.4.0](https://github.com/kubernetes/kubernetes/releases/tag/v1.4.0) |
 
 **Overlord** - Deployment logic that stands up a Kubenetes cluster
 
