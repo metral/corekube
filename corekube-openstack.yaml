@@ -39,7 +39,7 @@
    flannel_url:
      type: string
      description: Flannel (0.5.5) Binary URL
-     default: "http://0afbabe78c1b1691fad4-21af6827a69c3ad910ccdb6595a59d19.r49.cf1.rackcdn.com/flanneld"
+     default: "https://storage.googleapis.com/flanneld/flanneld"
    private_discovery_etcd_version:
      type: string
      description: Version of etcd used for Private Discovery node
